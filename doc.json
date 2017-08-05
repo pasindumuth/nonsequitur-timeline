@@ -1,0 +1,88 @@
+// Datatype definitions
+
+{
+
+    // Trace Data:
+    "Program": {
+        "programData": {
+            "start": "integer",
+            "end": "integer"
+        },
+        "threads": [
+            "Thread"
+        ]
+    },
+
+    "Thread": {
+        "threadData" : {
+            "start": "integer",
+            "end": "integer",
+            "numPatterns": "integer",
+            "name" : "string",
+            "threadID": "integer"
+        },
+        "patterns": [
+            "Pattern"
+        ]
+    },
+
+    "Pattern": {
+        "patternData": {
+            "patternID": "integer",
+            "start": "integer",
+            "end": "integer",
+            "frequency": "integer",
+            "absTimePrefix": "string"
+        },
+        "patternIntervals": [
+            [
+                "integer",
+                "integer"
+            ]
+        ]
+    },
+
+    // Renderer Data: all time values are in relative time
+    "timelineData": [
+        "integer"
+    ],
+
+    "timeframePanelsRaw": [
+        {
+            "start": "integer",
+            "end": "integer", 
+            "resolution": "integer"
+        }
+    ],
+
+    "timeframePanels": [
+        {
+            "start": "integer",
+            "end": "integer",
+            "resolution": "integer",
+            "pixelStart": "integer",
+            "pixelEnd": "integer"
+        }
+    ],
+
+    "viewportMetadata": {
+        "width": "integer"
+    },
+
+    "Canvas": {
+        "timelineData": "timelineData",
+        "canvasWidth": "integer",
+        "canvasHeight": "integer",
+        "timelineWidth": "integer",
+        "timelineHeight": "integer",
+        "timeframePanels": "timeframePanels",
+        "canvasList": [
+            "canvas"
+        ]
+    }
+
+}
+
+
+
+
