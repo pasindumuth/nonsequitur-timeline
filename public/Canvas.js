@@ -1,7 +1,7 @@
 "use strict";
 
 // UI constants
-let RIBBON_HEIGHT = 6,
+let RIBBON_HEIGHT = 10,
     THREAD_GAP = 20,
     TIMELINE_TOP_PADDING = 15,
     TIMELINE_BOTTOM_PADDING = 10,
