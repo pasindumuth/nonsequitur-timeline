@@ -1,8 +1,4 @@
-// Datatype definitions
-
 {
-
-    // Trace Data:
     "Program": {
         "programData": {
             "start": "integer",
@@ -42,7 +38,6 @@
         ]
     },
 
-    // Renderer Data: all time values are in relative time
     "timelineData": [
         "integer"
     ],
