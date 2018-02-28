@@ -1,5 +1,13 @@
+.vscode
 node_modules
+yarn-error.log
+yarn.lock
 
-*.patterns
+app/*
 
-queries.json
+!app/data
+app/data/*
+!app/data/.keep
+
+!app/config.json
+

@@ -1,11 +1,10 @@
 "use strict";
 
-let express = require('express');
-let bodyParser = require('body-parser');
-let app = express();
-let http = require('http').Server(app);
+import express from 'express';
+import bodyParser from 'body-parser';
+import main from "./processor";
 
-let main = require("./server/processor").main;
+let app = express();
 let program = main();
 
 
@@ -24,9 +23,11 @@ app.get("/data", function (request, response) {
     response.end();    
 });
 
-let server = http.listen(4000, function () {
-    let host = server.address().address,
-        port = server.address().port;
-
-    console.log('NonSequiturTimeline Vizualization hosted on http://%s:%s', host, port);
+const server = app.listen(4000, () => {
+    console.log(
+        "  App is running at http://localhost:%",
+        4000,
+    );
+    console.log("  Press CTRL-C to stop\n");
 });
+  

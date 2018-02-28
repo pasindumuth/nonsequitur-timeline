@@ -1,5 +1,6 @@
 {
     "ignore": [
-        "server/queries.json"
+        "server/queries.json",
+        "app"
     ]
 }

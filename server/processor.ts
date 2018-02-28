@@ -1,8 +1,8 @@
 "use strict";
 
-let fs = require("fs");
-let path = require("path");
-let stripJsonComments = require("strip-json-comments");
+import fs from 'fs';
+import path from 'path';
+import stripJsonComments from 'strip-json-comments';
 
 let CONFIG_PATH = "config.json";
 let config;
@@ -21,10 +21,35 @@ let NUM_QUERIES_FOR_PATTERN = 10;
  * We must fix this at some point, since this is a big flaw.
  */
 
+// interface ProgramData {
+//     start: number;
+//     end: number;
+// }
+
 let Program = function () {
     this.programData = {};
     this.threads = [];
 }
+
+// interface ThreadData {
+//     start: number;
+//     end: number;
+//     numPatterns: number;
+//     name: string,
+//     threadID: number;
+// }
+
+// interface PatternData {
+//     patternID: number;
+//     start: number;
+//     end: number;
+//     frequency: number;
+//     absTimePrefix: string;
+// }
+
+// interface PatternInterval {
+    
+// }
 
 let Thread = function () {
     this.threadData = {};
@@ -48,7 +73,7 @@ let processThreadRaw = function (filePath) {
 
     while (lines[i].length > 0) {
         let pattern = new Pattern();
-        let patternStart = Number.MAX_SAFE_INTEGER;
+        let patternStart = Number.MAX_VALUE;
         let patternEnd = 0;
 
         pattern.patternData.patternID = parseInt(lines[i + 1]);
@@ -97,8 +122,8 @@ let processThreadRaw = function (filePath) {
 }
 
 let getThreadData = function (patterns) {
-    let threadData = {};
-    let threadStart = Number.MAX_SAFE_INTEGER;
+    let threadData:any = {};
+    let threadStart = Number.MAX_VALUE;
     let threadEnd = 0; 
 
     for (let pattern of patterns) {
@@ -114,8 +139,8 @@ let getThreadData = function (patterns) {
 }
 
 let getProgramData = function (threads) {
-    let programData = {};
-    let programStart = Number.MAX_SAFE_INTEGER;
+    let programData:any = {};
+    let programStart = Number.MAX_VALUE;
     let programEnd = 0; 
 
     for (let thread of threads) {
@@ -248,7 +273,7 @@ let main = function () {
     absoluteTimeToRelativeTime(program);
 
     let timeframePanelsRaw = [];
-    let panel = {};
+    let panel:any = {};
     panel.start = program.programData.start;
     panel.end = program.programData.end;
     panel.resolution = programConfig.RESOLUTION;
@@ -257,7 +282,4 @@ let main = function () {
     return {program, timeframePanelsRaw};
 }
 
-
-module.exports = {
-    main: main
-}
+export default main;    

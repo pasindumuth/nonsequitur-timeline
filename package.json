@@ -1,22 +1,26 @@
 {
-  "name": "trace_tools",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "devstart": "nodemon ./index.js"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "body-parser": "^1.17.2",
-    "express": "^4.15.3",
-    "monetdb": "^1.1.4",
-    "strip-json-comments": "^2.0.1"
-  },
-  "devDependencies": {
-    "nodemon": "^1.11.0"
-  }
+    "name": "trace_tools",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "devstart": "nodemon ./app/index.js"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "@types/express": "^4.11.1",
+        "@types/node": "^9.4.6",
+        "@types/strip-json-comments": "^0.0.30",
+        "body-parser": "^1.17.2",
+        "express": "^4.15.3",
+        "monetdb": "^1.1.4",
+        "strip-json-comments": "^2.0.1",
+        "typescript": "^2.7.2"
+    },
+    "devDependencies": {
+        "nodemon": "^1.11.0"
+    }
 }
