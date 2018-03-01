@@ -1,21 +1,22 @@
-"use strict";
+import $ from 'jquery';
+import Canvas from './Canvas';
 
 let RIBBON_LIGHT = "#eaeaea",
     RIBBON_DARK = "#f4f4f4";
 
-let render = function (result) {
+let render = function (result: AjaxData) {
     console.log("start rendering");
     let timeframePanelsRaw = result.timeframePanelsRaw;
     let program = result.program;
 
-    let timelineData = [];
+    let timelineData = new Array<number>();
     for (let thread of program.threads) {
         let patterns = thread.patterns;
         timelineData.push(patterns.length);
     }
 
     let width = $(window).width();
-    let timelineCanvas = new Canvas(timeframePanelsRaw, timelineData, {width});
+    let timelineCanvas = new Canvas(timeframePanelsRaw, timelineData, width);
 
     let rootDiv = $("#mainRenderContainer");
     for (let canvas of timelineCanvas.canvasList) {

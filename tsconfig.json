@@ -5,7 +5,12 @@
         "target": "es6",
         "noImplicitAny": false,
         "sourceMap": true,
-        "outDir": "app",
+        "outDir": "build"
     },
-    "include": [ "server/**/*"]
+    "include": [ 
+        "src/**/*"
+    ]
+    // "exclude": [
+    //     "src/public"
+    // ]
 }

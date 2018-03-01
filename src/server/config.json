@@ -10,28 +10,28 @@
             "name" : "19",
             "threadID": 20,
             "numTopPatterns" : 19,
-            "filePath": "data/trace.bin.19.patterns"
+            "filePath": "../data/trace.bin.19.patterns"
         },
 
         {
             "name" : "20",
             "threadID": 20,
             "numTopPatterns" : 20,
-            "filePath": "data/trace.bin.20.patterns"
+            "filePath": "../data/trace.bin.20.patterns"
         },
 
         {
             "name" : "22",
             "threadID": 22,
             "numTopPatterns" : 20,
-            "filePath": "data/trace.bin.22.patterns"
+            "filePath": "../data/trace.bin.22.patterns"
         },
 
         {
             "name" : "23",
             "threadID": 23,
             "numTopPatterns" : 20,
-            "filePath": "data/trace.bin.23.patterns"
+            "filePath": "../data/trace.bin.23.patterns"
         }
     ]
 }

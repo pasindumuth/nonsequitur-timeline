@@ -2,7 +2,8 @@
 
 import express from 'express';
 import bodyParser from 'body-parser';
-import main from "./processor";
+import path from 'path';
+import main from "./server/processor";
 
 let app = express();
 let program = main();
@@ -15,7 +16,7 @@ app.use(function(req, res, next) {
 });
 
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(express.static('./public'));
+app.use(express.static(path.join(__dirname, 'public')));
 
 app.get("/data", function (request, response) {
     response.writeHead(200, {"Content-Type": "application/json"});

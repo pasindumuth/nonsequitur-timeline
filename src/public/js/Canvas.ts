@@ -1,4 +1,4 @@
-"use strict";
+import $ from 'jquery';
 
 // UI constants
 // we refer to a single ribbon as a "timeline", as well as the set of all ribbons
@@ -41,9 +41,9 @@ let ALL_COLORS = ["#969664","#fa0064","#9632c8","#3264fa","#966464","#32c864","#
 //                   "#aaaa11", "#6633cc", "#e67300", "#8b0707", "#651067", "#329262",
 //                   "#5574a6", "#3b3eac"];
 
-let Canvas = function (timeframePanelsRaw, timelineData, viewportMetaData) {
+let Canvas = function (timeframePanelsRaw, timelineData, width) {
     this.timelineData = timelineData;
-    this.canvasWidth = viewportMetaData.width - CANVAS_MARGIN;
+    this.canvasWidth = width - CANVAS_MARGIN;
     
     let dimensionData = this.getDimensionData(this.timelineData, this.canvasWidth);
     this.canvasHeight = dimensionData.canvasHeight;
@@ -99,7 +99,7 @@ Canvas.prototype.refineTimeframePanels = function (timeframePanelsRaw) {
     let timeEnd = 0;
 
     for (let rawPanel of timeframePanelsRaw) {
-        let refinedPanel = {}
+        let refinedPanel: any = {}
         refinedPanel.start = rawPanel.start;
         refinedPanel.end = rawPanel.end;
         refinedPanel.resolution = rawPanel.resolution;
@@ -272,7 +272,7 @@ Canvas.prototype.getColor = function (threadNum, ribbonNum) {
 
 Canvas.prototype.getThreadPattern = function (color) {
     let hash = this.colorToThreadPattern.get(color);
-    let threadPattern = {};
+    let threadPattern: any = {};
     threadPattern.threadNum = hash / 100;
     threadPattern.ribbonNum = hash % 100;
     return threadPattern;
@@ -374,7 +374,7 @@ Canvas.prototype.setupMouseEvents = function (rootDiv) {
         let x = e.pageX;
         let y = e.pageY; 
 
-        let element = document.elementFromPoint(x, y);
+        let element = document.elementFromPoint(x, y) as HTMLCanvasElement;
         if (element.tagName == "CANVAS") {
             let xCanvas = x - element.offsetLeft;
             let yCanvas = y - element.offsetTop;
@@ -384,3 +384,5 @@ Canvas.prototype.setupMouseEvents = function (rootDiv) {
         }
     });
 }
+
+export default Canvas;

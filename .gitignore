@@ -3,11 +3,7 @@ node_modules
 yarn-error.log
 yarn.lock
 
-app/*
-
-!app/data
-app/data/*
-!app/data/.keep
-
-!app/config.json
-
+build/*
+!build/data
+build/data/*
+!build/data/.keep

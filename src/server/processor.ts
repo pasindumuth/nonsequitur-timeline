@@ -13,42 +13,6 @@ const NUM_QUERIES_FOR_PATTERN = 10;
  * Need to avoid initialization errors...
  */
 
-class Program {
-    programData: ProgramData;
-    threads: Thread[];
-}
-
-class ProgramData {
-    start: number;
-    end: number;
-}
-
-class Thread {
-    threadData: ThreadData;
-    patterns: Pattern[];
-}
-
-class ThreadData {
-    start: number;
-    end: number;
-    numPatterns: number;
-    name: string;
-    threadID: number;
-}
-
-class Pattern {
-    patternData: PatternData;
-    patternIntervals: number[][];
-}
-
-class PatternData {
-    patternID: number;
-    start: number;
-    end: number;
-    frequency: number;
-    absTimePrefix: string;
-}
-
 function getPatterns(filePath: string): Pattern[] {
     let data = fs.readFileSync(path.join(__dirname, filePath), "utf-8");
     let lines = data.split("\n");
@@ -242,7 +206,7 @@ function createQueries(threads: Thread[]): void {
     fs.writeFileSync(path.join(__dirname, QUERIES_PATH), JSON.stringify(queries, null, 4));
 }
 
-function main() {
+function main(): AjaxData {
     let threads = new Array<Thread>();
     for (let threadConfig of config.threads) {
         let patterns = getPatterns(threadConfig.filePath);
@@ -264,12 +228,12 @@ function main() {
     createQueries(threads);
     absoluteTimeToRelativeTime(program);
 
-    // Make this better
-    let timeframePanelsRaw = [{
+    let timeframePanelsRaw = new Array<TimeframePanelRaw>();
+    timeframePanelsRaw.push({
         start: program.programData.start,
         end: program.programData.end,
         resolution: config.programConfig.RESOLUTION
-    }];
+    })
 
     return {program, timeframePanelsRaw};
 }
