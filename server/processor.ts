@@ -1,106 +1,100 @@
-"use strict";
-
 import fs from 'fs';
 import path from 'path';
 import stripJsonComments from 'strip-json-comments';
+import { Config, ProgramConfig, ThreadConfig } from './config'
 
-let CONFIG_PATH = "config.json";
-let config;
-let programConfig;
+const config: Config = require('./config.json');
 
-let QUERIES_PATH = "queries.json";
-let NUM_QUERIES_FOR_PATTERN = 10;
+const QUERIES_PATH = "queries.json";
+const NUM_QUERIES_FOR_PATTERN = 10;
 
 /**
- * Since the absolute time is larger that the masximum possible javascript number, we assume 
- * that all the digits prior to the last 15 stay the same for the whole trace 
- * (which is all reasonable assumption to make, since 15 digits correspond to 10000 seconds). 
- * However, this leaves the possilibty for this parsing algorithm to break if by any chance, 
- * the last 15 digits are close to the max value, resulting in a wrap around later in the trace. 
- * 
- * We must fix this at some point, since this is a big flaw.
+ * TODO: write queries to better place
+ * Need to avoid initialization errors...
  */
 
-// interface ProgramData {
-//     start: number;
-//     end: number;
-// }
-
-let Program = function () {
-    this.programData = {};
-    this.threads = [];
+class Program {
+    programData: ProgramData;
+    threads: Thread[];
 }
 
-// interface ThreadData {
-//     start: number;
-//     end: number;
-//     numPatterns: number;
-//     name: string,
-//     threadID: number;
-// }
-
-// interface PatternData {
-//     patternID: number;
-//     start: number;
-//     end: number;
-//     frequency: number;
-//     absTimePrefix: string;
-// }
-
-// interface PatternInterval {
-    
-// }
-
-let Thread = function () {
-    this.threadData = {};
-    this.patterns = [];
+class ProgramData {
+    start: number;
+    end: number;
 }
 
-let Pattern = function () {
-    this.patternData = {};
-    this.patternIntervals = [];
+class Thread {
+    threadData: ThreadData;
+    patterns: Pattern[];
 }
 
-let processThreadRaw = function (filePath) {
+class ThreadData {
+    start: number;
+    end: number;
+    numPatterns: number;
+    name: string;
+    threadID: number;
+}
+
+class Pattern {
+    patternData: PatternData;
+    patternIntervals: number[][];
+}
+
+class PatternData {
+    patternID: number;
+    start: number;
+    end: number;
+    frequency: number;
+    absTimePrefix: string;
+}
+
+function getPatterns(filePath: string): Pattern[] {
     let data = fs.readFileSync(path.join(__dirname, filePath), "utf-8");
     let lines = data.split("\n");
-    let thread = new Thread();
 
     let i = 0;
     while (lines[i].charAt(0) != "#") {
         i++;
     }
 
+    let patterns = new Array<Pattern>();
     while (lines[i].length > 0) {
-        let pattern = new Pattern();
-        let patternStart = Number.MAX_VALUE;
-        let patternEnd = 0;
-
-        pattern.patternData.patternID = parseInt(lines[i + 1]);
-
         let k = i + 4,
             j = 0;
 
+        let intervals = [];
+        let absTimePrefix = "";
+        let patternStart = Number.MAX_VALUE;
+        let patternEnd = 0;
         while (lines[k + j].length > 0 && lines[k + j].charAt(0) != "#") {
             let line = lines[k + j],
                 interval = [];
 
             let pair = line.split(" : "),
                 start = pair[0];
+
+            /**
+             * Since the absolute time is larger that the maximum possible javascript number, we assume 
+             * that all the digits prior to the last 15 stay the same for the whole trace 
+             * (which is all reasonable assumption to make, since 15 digits correspond to 10000 seconds). 
+             * However, this leaves the possilibty for this parsing algorithm to break if by any chance, 
+             * the last 15 digits are close to the max value, resulting in a wrap around later in the trace. 
+             * 
+             * We must fix this at some point.
+             */
             
-            if (start.length >= programConfig.RELATIVE_TIME_NUM_DIGITS) {
+            if (start.length >= config.programConfig.RELATIVE_TIME_NUM_DIGITS) {
                 let oldStart = start;
-                start = oldStart.substring(start.length - programConfig.RELATIVE_TIME_NUM_DIGITS, start.length);
-                pattern.patternData.absTimePrefix = oldStart.substring(0, oldStart.length - programConfig.RELATIVE_TIME_NUM_DIGITS);
-            } else {
-                pattern.patternData.absTimePrefix = "";
+                start = oldStart.substring(start.length - config.programConfig.RELATIVE_TIME_NUM_DIGITS, start.length);
+                absTimePrefix = oldStart.substring(0, oldStart.length - config.programConfig.RELATIVE_TIME_NUM_DIGITS);
             }
 
             let startInt = parseInt(start);
             let endInt = startInt + parseInt(pair[1]);
             interval.push(startInt);
             interval.push(endInt);
-            pattern.patternIntervals.push(interval);
+            intervals.push(interval);
 
             if (startInt < patternStart) patternStart = startInt;
             if (endInt > patternEnd) patternEnd = endInt;
@@ -108,21 +102,24 @@ let processThreadRaw = function (filePath) {
             j++;
         }
 
-        pattern.patternData.frequency = pattern.patternIntervals.length;
-        pattern.patternData.start = patternStart;
-        pattern.patternData.end = patternEnd;
-        thread.patterns.push(pattern);
+        patterns.push({
+            patternData: {
+                patternID: parseInt(lines[i + 1]),
+                start: patternStart,
+                end: patternEnd,
+                frequency: intervals.length,
+                absTimePrefix: absTimePrefix
+            },
+            patternIntervals: intervals
+        })
 
         i = k + j;
     }
 
-    thread.threadData = getThreadData(thread.patterns);
-
-    return thread;
+    return patterns;
 }
 
-let getThreadData = function (patterns) {
-    let threadData:any = {};
+function getThreadData(patterns: Pattern[], threadConfig: ThreadConfig): ThreadData {
     let threadStart = Number.MAX_VALUE;
     let threadEnd = 0; 
 
@@ -131,15 +128,16 @@ let getThreadData = function (patterns) {
         if (pattern.patternData.end > threadEnd) threadEnd = pattern.patternData.end;
     }
 
-    threadData.start = threadStart;
-    threadData.end = threadEnd;
-    threadData.numPatterns = patterns.length;
-
-    return threadData;
+    return {
+        start: threadStart,
+        end: threadEnd,
+        numPatterns: patterns.length,
+        name: threadConfig.name,
+        threadID: threadConfig.threadID
+    }
 }
 
-let getProgramData = function (threads) {
-    let programData:any = {};
+function getProgramData(threads: Thread[]): ProgramData {
     let programStart = Number.MAX_VALUE;
     let programEnd = 0; 
 
@@ -148,35 +146,30 @@ let getProgramData = function (threads) {
         if (thread.threadData.end > programEnd) programEnd = thread.threadData.end;
     }
 
-    programData.start = programStart;
-    programData.end = programEnd;
-
-    return programData;
+    return {
+        start: programStart,
+        end: programEnd
+    };
 }
 
 /**
  * Selection policy is based on frequency
  */
 
-let getTopPatterns = function (thread, numTopPatterns) {
-    let patterns = thread.patterns;
-    patterns.sort(function (a, b) {
+function getTopPatterns (patterns: Pattern[], numTopPatterns: number): Pattern [] {
+    patterns.sort(function (a: Pattern, b: Pattern) {
         return b.patternData.frequency - a.patternData.frequency;
     });
 
-    let topPatterns = [];
+    let topPatterns = new Array<Pattern>();
     for (let i = 0; i < numTopPatterns && i < patterns.length; i++) {
         topPatterns.push(patterns[i]);
     }
 
-    let newThread = new Thread();
-    newThread.threadData = getThreadData(topPatterns);
-    newThread.patterns = topPatterns;
-
-    return newThread;
+    return topPatterns;
 }
 
-let absoluteTimeToRelativeTime = function (program) {
+function absoluteTimeToRelativeTime(program: Program) {
     let programStart = program.programData.start;
     
     for (let thread of program.threads) {
@@ -198,22 +191,22 @@ let absoluteTimeToRelativeTime = function (program) {
     program.programData.end -= programStart;
 }
 
-let filterIntervals = function (program, maxRelativeTime) {
+// let filterIntervals = function (program, maxRelativeTime) {
 
-    for (let thread of program.threads) {
-        for (let pattern of thread.patterns) {
-            let newPatternIntervals = [];
-            for (let interval of pattern.patternIntervals) {
-                if (interval[1] > maxRelativeTime) break;
-                newPatternIntervals.push(interval);
-            }
+//     for (let thread of program.threads) {
+//         for (let pattern of thread.patterns) {
+//             let newPatternIntervals = [];
+//             for (let interval of pattern.patternIntervals) {
+//                 if (interval[1] > maxRelativeTime) break;
+//                 newPatternIntervals.push(interval);
+//             }
 
-            pattern.patternIntervals = newPatternIntervals;
-        }
-    }
-}
+//             pattern.patternIntervals = newPatternIntervals;
+//         }
+//     }
+// }
 
-let createQuery = function (absTimePrefix, timeStart, timeEnd, threadNum) {
+function createQuery(absTimePrefix: string, timeStart: number, timeEnd: number, threadNum: number): string {
     return "SELECT dir, func, tid, time FROM trace "
          + "WHERE " 
          + absTimePrefix + timeStart.toString() 
@@ -223,12 +216,12 @@ let createQuery = function (absTimePrefix, timeStart, timeEnd, threadNum) {
          + ";";
 }
 
-let createQueries = function (program) {
+function createQueries(threads: Thread[]): void {
     let queries = [];
-    for (let i = 0; i < program.threads.length; i++) {
+    for (let i = 0; i < threads.length; i++) {
         let threadQueries = [];
 
-        let thread = program.threads[i];
+        let thread = threads[i];
         for (let j = 0; j < thread.patterns.length; j++) {
             let patternQueries = [];
 
@@ -249,37 +242,36 @@ let createQueries = function (program) {
     fs.writeFileSync(path.join(__dirname, QUERIES_PATH), JSON.stringify(queries, null, 4));
 }
 
+function main() {
+    let threads = new Array<Thread>();
+    for (let threadConfig of config.threads) {
+        let patterns = getPatterns(threadConfig.filePath);
+        patterns = getTopPatterns(patterns, threadConfig.numTopPatterns);
 
-let main = function () {
-    config = JSON.parse(stripJsonComments(fs.readFileSync(path.join(__dirname, CONFIG_PATH), "utf-8")));
-    programConfig = config.programConfig;
-    
-    let program = new Program();
+        let thread: Thread = {
+            threadData: getThreadData(patterns, threadConfig),
+            patterns: patterns
+        }
 
-    for (let threadProcessData of config.threads) {
-        let thread = processThreadRaw(threadProcessData.filePath);
-        thread = getTopPatterns(thread, threadProcessData.numTopPatterns);
-
-        //hack: fix later
-        thread.threadData.name = threadProcessData.name;
-        thread.threadData.threadID = threadProcessData.threadID;
-
-        program.threads.push(thread);
+        threads.push(thread);
     }
 
-    createQueries(program);
+    let program: Program = {
+        programData: getProgramData(threads),
+        threads: threads
+    }
 
-    program.programData = getProgramData(program.threads);
+    createQueries(threads);
     absoluteTimeToRelativeTime(program);
 
-    let timeframePanelsRaw = [];
-    let panel:any = {};
-    panel.start = program.programData.start;
-    panel.end = program.programData.end;
-    panel.resolution = programConfig.RESOLUTION;
-    timeframePanelsRaw.push(panel);
+    // Make this better
+    let timeframePanelsRaw = [{
+        start: program.programData.start,
+        end: program.programData.end,
+        resolution: config.programConfig.RESOLUTION
+    }];
 
     return {program, timeframePanelsRaw};
 }
 
-export default main;    
+export default main;

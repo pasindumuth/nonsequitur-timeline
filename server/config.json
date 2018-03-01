@@ -1,0 +1,37 @@
+{
+    "programConfig" : {
+        "RESOLUTION": 2000000,
+        "RELATIVE_TIME_NUM_DIGITS": 15,
+        "MAX_RELATIVE_TIME": 1000000
+    },
+
+    "threads": [
+        {
+            "name" : "19",
+            "threadID": 20,
+            "numTopPatterns" : 19,
+            "filePath": "data/trace.bin.19.patterns"
+        },
+
+        {
+            "name" : "20",
+            "threadID": 20,
+            "numTopPatterns" : 20,
+            "filePath": "data/trace.bin.20.patterns"
+        },
+
+        {
+            "name" : "22",
+            "threadID": 22,
+            "numTopPatterns" : 20,
+            "filePath": "data/trace.bin.22.patterns"
+        },
+
+        {
+            "name" : "23",
+            "threadID": 23,
+            "numTopPatterns" : 20,
+            "filePath": "data/trace.bin.23.patterns"
+        }
+    ]
+}
