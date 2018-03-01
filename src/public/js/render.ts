@@ -4,7 +4,7 @@ import Canvas from './Canvas';
 let RIBBON_LIGHT = "#eaeaea",
     RIBBON_DARK = "#f4f4f4";
 
-let render = function (result: AjaxData) {
+function render(result: AjaxData) {
     console.log("start rendering");
     let timeframePanelsRaw = result.timeframePanelsRaw;
     let program = result.program;
@@ -31,24 +31,24 @@ let render = function (result: AjaxData) {
     drawRibbons(timelineCanvas);
     drawProgramData(program, timelineCanvas);
 
-    let names = [];
+    let names = new Array<string>();
     for (let thread of program.threads) {
         names.push(thread.threadData.name);
     }
     timelineCanvas.drawNameSidebar(names);
 
-    timelineCanvas.setupMouseEvents(rootDiv);
+    // timelineCanvas.setupMouseEvents(rootDiv);
     console.log("all done");
 }
 
-let drawProgramData = function (program, timelineCanvas) {
+function drawProgramData(program: Program, timelineCanvas: Canvas) {
     let intervalsDrawn = 0;
     for (let i = 0; i < program.threads.length; i++) {
         let thread = program.threads[i];
         for (let j = 0; j < thread.patterns.length; j++) {
             let pattern = thread.patterns[j];
             for (let interval of pattern.patternIntervals) {
-                timelineCanvas.drawInterval(i, j, interval[0], interval[1], timelineCanvas.getColor(i, j));
+                timelineCanvas.drawInterval(i, j, interval[0], interval[1], timelineCanvas.getColor(i, j)); // getting the colors here? seems hacky
                 intervalsDrawn++;
             }
         }
@@ -57,7 +57,7 @@ let drawProgramData = function (program, timelineCanvas) {
     console.log(intervalsDrawn)
 }
 
-let drawRibbons = function (timelineCanvas) {
+function drawRibbons(timelineCanvas: Canvas) {
     let color = RIBBON_LIGHT;
     let start = timelineCanvas.timelineTimeStart; 
     let end = timelineCanvas.timelineTimeEnd; 
@@ -75,8 +75,6 @@ let drawRibbons = function (timelineCanvas) {
 $(document).ready(function () {
     $.ajax({url: "/data", success: render});
 });
-
-
 
 /**
  * TODO:
