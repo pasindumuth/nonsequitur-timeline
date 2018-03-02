@@ -4,9 +4,9 @@
     "description": "",
     "main": "app.js",
     "scripts": {
-        "build": "npm run build-ts && npm run copy-static-assets && npm run build-browser",
-        "build-ts": "tsc",
-        "build-browser": "browserify src/public/js/* -p [ tsify ] > build/public/bundle.js",
+        "build": "npm run build-server && npm run copy-static-assets && npm run build-client",
+        "build-server": "tsc",
+        "build-client": "browserify src/public/js/render.ts -p [ tsify ] > build/public/bundle.js",
         "copy-static-assets": "ts-node copyStaticAssets.ts",
         "test": "echo \"Error: no test specified\" && exit 1",
         "devstart": "nodemon ./build/app.js"

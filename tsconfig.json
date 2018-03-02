@@ -9,8 +9,8 @@
     },
     "include": [ 
         "src/**/*"
+    ],
+    "exclude": [
+        "src/public"
     ]
-    // "exclude": [
-    //     "src/public"
-    // ]
 }
