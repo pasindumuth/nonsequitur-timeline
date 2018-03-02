@@ -11,6 +11,6 @@
         "src/**/*"
     ],
     "exclude": [
-        "src/public"
+        "src/client"
     ]
 }

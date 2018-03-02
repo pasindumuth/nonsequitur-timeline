@@ -14,11 +14,21 @@ export default class TimelineBarDrawer {
                                 + Config.PROGRAM_TIMELINE_BOTTOM_PADDING 
                                 + Config.TIMELINE_MEASURE_BAR_TOP_PADDING;
                                 
-        for (let panel of this.canvas.panels) {
+        for (let i = 0; i < this.canvas.panels.length; i++) {
+            let panel = this.canvas.panels[i];
             let context = panel.getContext("2d");
             context.beginPath();
-            context.rect(this.timelineBarOriginX, this.timelineBarOriginY, this.canvas.programTimelineWidth, Config.TIMELINE_MEASURE_BAR_LINE_HEIGHT);
-            context.rect(this.timelineBarOriginX - Config.TIMELINE_MEASURE_BAR_LEFT_OVERFLOW, this.timelineBarOriginY, Config.TIMELINE_MEASURE_BAR_LEFT_OVERFLOW, Config.TIMELINE_MEASURE_BAR_LINE_HEIGHT);
+            context.rect(this.timelineBarOriginX, 
+                         this.timelineBarOriginY, 
+                         (i == this.canvas.panels.length - 1) ? this.canvas.totalPixelLength % this.canvas.programTimelineWidth 
+                                                              : this.canvas.programTimelineWidth, 
+                         Config.TIMELINE_MEASURE_BAR_LINE_HEIGHT);
+
+            context.rect(this.timelineBarOriginX - Config.TIMELINE_MEASURE_BAR_LEFT_OVERFLOW, 
+                         this.timelineBarOriginY, 
+                         Config.TIMELINE_MEASURE_BAR_LEFT_OVERFLOW, 
+                         Config.TIMELINE_MEASURE_BAR_LINE_HEIGHT);
+                         
             context.fillStyle = Config.TIMELINE_MEASURE_BAR_COLOR;
             context.fill();
             context.closePath();

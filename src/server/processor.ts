@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import stripJsonComments from 'strip-json-comments';
 import { Config, ProgramConfig, ThreadConfig } from './config'
+import { AjaxData, Program, ProgramData, Thread, ThreadData, Pattern, TimeframePanelRaw } from '../shapes';
 
 const config: Config = require('./config.json');
 

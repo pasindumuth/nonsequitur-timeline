@@ -1,24 +1,24 @@
-class AjaxData {
+export class AjaxData {
     program: Program;
     timeframePanelsRaw: TimeframePanelRaw[];
 }
 
-class Program {
+export class Program {
     programData: ProgramData;
     threads: Thread[];
 }
 
-class ProgramData {
+export class ProgramData {
     start: number;
     end: number;
 }
 
-class Thread {
+export class Thread {
     threadData: ThreadData;
     patterns: Pattern[];
 }
 
-class ThreadData {
+export class ThreadData {
     start: number;
     end: number;
     numPatterns: number;
@@ -26,12 +26,12 @@ class ThreadData {
     threadID: number;
 }
 
-class Pattern {
+export class Pattern {
     patternData: PatternData;
     patternIntervals: number[][];
 }
 
-class PatternData {
+export class PatternData {
     patternID: number;
     start: number;
     end: number;
@@ -39,13 +39,13 @@ class PatternData {
     absTimePrefix: string;
 }
 
-class TimeframePanelRaw {
+export class TimeframePanelRaw {
     start:number;
     end: number;
     resolution: number;
 }
 
-class TimeframePanel {
+export class TimeframePanel {
     start: number;
     end: number;
     resolution: number;
