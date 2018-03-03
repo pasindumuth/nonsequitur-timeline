@@ -6,26 +6,53 @@ import ProgramTimelineDrawer from './drawers/ProgramTimelineDrawer';
 import TimelineBarDrawer from './drawers/TimelineBarDrawer';
 import SidebarDrawer from './drawers/SidebarDrawer';
 import ColorPicker from './ColorPicker';
-import TimePixelConverter from './TimePixelConverter';
 
 export default class TimelineVis {
+    timeframePanels: TimeframePanel[];
+
     canvas: Canvas;
-    timePixelConverter: TimePixelConverter;
     programTimelineDrawer: ProgramTimelineDrawer;
     timelineBarDrawer: TimelineBarDrawer;
     sidebarDrawer: SidebarDrawer;
     colorPicker: ColorPicker;
 
     constructor(timeframePanelsRaw: TimeframePanelRaw[], programRibbonData: number[], width: number) {
-        this.timePixelConverter = new TimePixelConverter(timeframePanelsRaw);
-        this.canvas = new Canvas(programRibbonData, this.timePixelConverter.getTotalPixelLength(), width - Config.CANVAS_MARGIN);
+        this.timeframePanels = TimelineVis.refineTimeframePanels(timeframePanelsRaw);
+
+        this.canvas = new Canvas(programRibbonData, this.getTotalPixelLength(), width - Config.CANVAS_MARGIN);
         this.programTimelineDrawer = new ProgramTimelineDrawer(this.canvas);
         this.timelineBarDrawer = new TimelineBarDrawer(this.canvas);
         this.sidebarDrawer = new SidebarDrawer(this.canvas);
         this.colorPicker = new ColorPicker(programRibbonData);
     }
 
-    // Done construction
+    static refineTimeframePanels = function (timeframePanelsRaw: TimeframePanelRaw[]): TimeframePanel[] {
+        let pixelOffset = 0;
+        let timeframePanels = new Array<TimeframePanel>();
+    
+        for (let rawPanel of timeframePanelsRaw) {
+            let refinedPanel = new TimeframePanel();
+            refinedPanel.start = rawPanel.start;
+            refinedPanel.end = rawPanel.end;
+            refinedPanel.resolution = rawPanel.resolution;
+            refinedPanel.pixelStart = pixelOffset;
+
+            pixelOffset += Math.floor((refinedPanel.end - refinedPanel.start) / refinedPanel.resolution);
+            refinedPanel.pixelEnd = pixelOffset;
+            timeframePanels.push(refinedPanel);
+        }
+
+        return timeframePanels;
+    }
+
+    getTotalPixelLength(): number {
+        let totalPixelLength = 0;
+        if (this.timeframePanels.length > 0) {
+            totalPixelLength = this.timeframePanels[this.timeframePanels.length - 1].pixelEnd + 1;
+        }
+        
+        return totalPixelLength;
+    }
 
     drawProgramData(program: Program) {
         let intervalsDrawn = 0;
@@ -33,40 +60,53 @@ export default class TimelineVis {
             let thread = program.threads[i];
             for (let j = 0; j < thread.patterns.length; j++) {
                 let pattern = thread.patterns[j];
+                let pixelStart: number;
+                let pixelEnd: number;
+                let panel: TimeframePanel;
+
+                let k = 0; 
                 for (let interval of pattern.patternIntervals) {
-                    this.drawInterval(i, j, interval[0], interval[1], this.colorPicker.getColor(i, j));
-                    intervalsDrawn++;
+                    while (this.timeframePanels[k].end < interval[0]) {
+                        k++;
+                        if (k == this.timeframePanels.length) break;
+                    }
+
+                    if (k == this.timeframePanels.length) break; // Move onto next pattern
+
+                    panel = this.timeframePanels[k];
+                    if (interval[0] < panel.start) {
+                        pixelStart = panel.pixelStart;
+                    } else {
+                        pixelStart = Math.floor((interval[0] - panel.start) / panel.resolution) + panel.pixelStart;
+                    }
+
+                    while (this.timeframePanels[k].end < interval[1]) {
+                        k++;
+                        if (k == this.timeframePanels.length) break;
+                    }
+
+                    if (k == this.timeframePanels.length) {
+                        pixelEnd = this.timeframePanels[k - 1].pixelEnd;
+                        this.programTimelineDrawer.drawInterval(i, j, pixelStart, pixelEnd, this.colorPicker.getColor(i, j));
+                        break; // Move onto next pattern
+                    } else {
+                        panel = this.timeframePanels[k]
+                        if (interval[1] < panel.start) {
+                            pixelEnd = panel.pixelStart;
+                        } else {
+                            pixelEnd = Math.floor((interval[1] - panel.start) / panel.resolution) + panel.pixelStart;
+                        }
+                        this.programTimelineDrawer.drawInterval(i, j, pixelStart, pixelEnd, this.colorPicker.getColor(i, j));
+                    }
                 }
             }
         }
     }
 
-    drawInterval(threadNum: number, ribbonNum: number, timeStart: number, timeEnd: number, color: string) {
-        let startXObj = this.timePixelConverter.getPixelOffset(timeStart);
-        let pixelStart, startPanel;
-        if (startXObj != null) {
-            pixelStart = startXObj.pixelOffset;
-            startPanel = startXObj.panel;
-        }
-    
-        let endXObj = this.timePixelConverter.getPixelOffset(timeEnd);
-        let pixelEnd, endPanel;
-        if (endXObj != null) {
-            endPanel = endXObj.panel;
-            pixelEnd = endXObj.pixelOffset;
-        }
-    
-        if (pixelStart == undefined && pixelEnd == undefined) return;
-        if (pixelStart == undefined) pixelStart = this.timePixelConverter.timeframePanels[endPanel].pixelStart;
-        if (pixelEnd == undefined) pixelEnd = this.timePixelConverter.timeframePanels[startPanel].pixelEnd;
-    
-        this.programTimelineDrawer.drawInterval(threadNum, ribbonNum, pixelStart, pixelEnd, color);
-    }
-
     drawTimelineBar() {
         let pixelOffset = 0;
         let numNotches = Math.floor(this.canvas.totalPixelLength / Config.TARGET_NOTCH_LENGTH);
-        for (let timeframePanel of this.timePixelConverter.timeframePanels) {
+        for (let timeframePanel of this.timeframePanels) {
             while (pixelOffset < timeframePanel.pixelEnd) {
                 let nextNotchTime = (pixelOffset - timeframePanel.pixelStart) / (timeframePanel.pixelEnd - timeframePanel.pixelStart)
                                   * (timeframePanel.end - timeframePanel.start) + timeframePanel.start;

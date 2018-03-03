@@ -24,9 +24,13 @@ const NUM_QUERIES_FOR_PATTERN = 10;
  * SAMPLING_RATIO and NUM_SAMPLES reduce the compressed timewindow by x1000. The duration of the
  * execution is 60G ns. Our RESOLUTION is 2M ns. We see that if we increase our NUM_SAMPLES by
  * another x10, then our compressed window will only 6M ns. This results in a lot of data loss
- * due to rounding error of the 3rd pixel (since 6M / 2M is 3). The smaller our compressed
- * window size (in ns) is, the finer (smaller) our RESOLUTION should be. We should opt for fine resolution,
- * high NUM_SAMPLES, and low SAMPLING_RATIO.
+ * due to rounding error of the 3rd pixel (since 6M / 2M is 3). 
+ * 
+ * This phenomenon is unavoidable; the fundamental tension is between having a lot of pixels per
+ * frame, and having a lots of frames (as samples). We cannot have both; we need to chose a balance.
+ * 
+ * One thing to help with reducing data loss is to choose these values dynamically such that dataloss
+ * is minimized.
  */
 
 

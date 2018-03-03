@@ -76,7 +76,7 @@ export default class Canvas {
         return threadOffsets;
     }
 
-    getCanvasIndexAndOffset(pixelOffset) {
+    getCanvasIndexAndOffset(pixelOffset: number) {
         if (pixelOffset < 0 || pixelOffset >= this.totalPixelLength) return null;
     
         let canvasIndex = Math.floor(pixelOffset / this.programTimelineWidth);

@@ -25,7 +25,7 @@ export default class ProgramTimelineDrawer {
         if (!(0 <= threadNum && threadNum < this.canvas.programRibbonData.length)
          || !(0 <= ribbonNum && ribbonNum < this.canvas.programRibbonData[threadNum])
          || pixelEnd < pixelStart) {
-            throw new RangeError("The threadNum and Ribbon num is out of range for the given programRibbonData");
+            throw new RangeError("threadNum and ribbonNum are out of range");
         };
 
         let startY = this.canvas.programTimelineOriginY 
@@ -59,7 +59,7 @@ export default class ProgramTimelineDrawer {
         let canvasIndex = Math.floor(pixelOffset / this.canvas.programTimelineWidth);
         let canvasOffset = pixelOffset % this.canvas.programTimelineWidth;
     
-        return {canvasIndex, canvasOffset};
+        return { canvasIndex, canvasOffset };
     }
     
     drawIntervalOnCanvas(panel, startOffset, endOffset, y, color) {
