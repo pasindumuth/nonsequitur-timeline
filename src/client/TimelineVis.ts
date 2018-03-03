@@ -64,14 +64,14 @@ export default class TimelineVis {
     }
 
     drawTimelineBar() {
+        let pixelOffset = 0;
+        let numNotches = Math.floor(this.canvas.totalPixelLength / Config.TARGET_NOTCH_LENGTH);
         for (let timeframePanel of this.timePixelConverter.timeframePanels) {
-            let numNotches = Math.ceil((timeframePanel.pixelEnd - timeframePanel.pixelStart) / Config.TARGET_NOTCH_LENGTH); 
-            let notchLength = (timeframePanel.end - timeframePanel.start) / numNotches;
-    
-            for (let i = 0; i <= numNotches; i++) {
-                let nextNotchTimeOffset = notchLength * i + timeframePanel.start;
-                let pixelOffset = this.timePixelConverter.getPixelOffset(nextNotchTimeOffset).pixelOffset; // inefficient
-                this.timelineBarDrawer.drawTimelineBar(nextNotchTimeOffset, pixelOffset);
+            while (pixelOffset < timeframePanel.pixelEnd) {
+                let nextNotchTime = (pixelOffset - timeframePanel.pixelStart) / (timeframePanel.pixelEnd - timeframePanel.pixelStart)
+                                  * (timeframePanel.end - timeframePanel.start) + timeframePanel.start;
+                this.timelineBarDrawer.drawTimelineBar(nextNotchTime, pixelOffset);
+                pixelOffset += Config.TARGET_NOTCH_LENGTH;
             }
         }
     }

@@ -51,8 +51,8 @@ export default class ProgramTimelineDrawer {
         }
     }
 
-    getCanvasIndexAndOffset(pixelOffset: number): {canvasIndex: number, canvasOffset: number } {
-        if (pixelOffset < 0 || pixelOffset >= this.canvas.totalPixelLength) {
+    getCanvasIndexAndOffset(pixelOffset: number): { canvasIndex: number, canvasOffset: number } {
+        if (pixelOffset < 0 || pixelOffset > this.canvas.totalPixelLength) {
             throw new RangeError("pixelOffset is out of range");
         }
     

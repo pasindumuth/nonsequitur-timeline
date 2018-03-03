@@ -5,6 +5,7 @@ export default class TimePixelConverter {
 
     constructor(timeframePanelsRaw: TimeframePanelRaw[]) {
         this.timeframePanels = TimePixelConverter.refineTimeframePanels(timeframePanelsRaw);
+        console.log(JSON.stringify(this.timeframePanels));
     }
 
     static refineTimeframePanels = function (timeframePanelsRaw: TimeframePanelRaw[]): TimeframePanel[] {
@@ -17,10 +18,12 @@ export default class TimePixelConverter {
             refinedPanel.end = rawPanel.end;
             refinedPanel.resolution = rawPanel.resolution;
             refinedPanel.pixelStart = pixelOffset;
-            refinedPanel.pixelEnd = pixelOffset + Math.floor((refinedPanel.end - refinedPanel.start) / refinedPanel.resolution);
+
+            pixelOffset += Math.floor((refinedPanel.end - refinedPanel.start) / refinedPanel.resolution);
+            refinedPanel.pixelEnd = pixelOffset;
             timeframePanels.push(refinedPanel);
         }
-    
+
         return timeframePanels;
     }
 
@@ -35,28 +38,34 @@ export default class TimePixelConverter {
 
 
     getPixelOffset(time: number): { pixelOffset: number; panel: number } {
-        let timeframePanels = this.timeframePanels;
-        let firstPanel = timeframePanels[0];
-        if (time < firstPanel.start) return null;
-    
+        if (this.timeframePanels.length == 0) return null;
+        if (time < this.timeframePanels[0].start) return null;
         let start = 0; 
-        let end = timeframePanels.length - 1;
+        let end = this.timeframePanels.length;
     
-        while (start != end) {
+        while (start < end) {
             let middle = Math.floor((start + end) / 2);
-            let curPanel = timeframePanels[middle];
+            let curPanel = this.timeframePanels[middle];
     
-            if (curPanel.start <= time) end = middle;
+            if (time <= curPanel.start) end = middle;
             else start = middle + 1;
         }
-    
-        let curPanel = timeframePanels[start];
+
+        let index;
+        if (start == this.timeframePanels.length 
+         || time < this.timeframePanels[start].start) {
+            index = start - 1;
+        } else {
+            index = start;
+        }
+
+        let curPanel = this.timeframePanels[index];
         if ((curPanel.start <= time) && (time <= curPanel.end)) {
             let timeDelta = time - curPanel.start;
             let pixelDelta = Math.floor(timeDelta / curPanel.resolution);
             let pixelOffset = pixelDelta + curPanel.pixelStart;
-            let panel = start;
-            return {pixelOffset, panel};
+            let panel = index;
+            return { pixelOffset, panel };
         } else {
             return null;
         }

@@ -10,9 +10,25 @@ const QUERIES_PATH = "queries.json";
 const NUM_QUERIES_FOR_PATTERN = 10;
 
 /**
- * TODO: write queries to better place
- * Need to avoid initialization errors...
+ * Since the absolute time is larger that the maximum possible javascript number, we assume 
+ * that all the digits prior to the last 15 stay the same for the whole trace 
+ * (which is all reasonable assumption to make, since 15 digits correspond to 10000 seconds). 
+ * However, this leaves the possilibty for this parsing algorithm to break if by any chance, 
+ * the last 15 digits are close to the max value, resulting in a wrap around later in the trace. 
+ * 
+ * We must fix this at some point.
  */
+
+/**
+ * Analysis of sampling: 
+ * SAMPLING_RATIO and NUM_SAMPLES reduce the compressed timewindow by x1000. The duration of the
+ * execution is 60G ns. Our RESOLUTION is 2M ns. We see that if we increase our NUM_SAMPLES by
+ * another x10, then our compressed window will only 6M ns. This results in a lot of data loss
+ * due to rounding error of the 3rd pixel (since 6M / 2M is 3). The smaller our compressed
+ * window size (in ns) is, the finer (smaller) our RESOLUTION should be. We should opt for fine resolution,
+ * high NUM_SAMPLES, and low SAMPLING_RATIO.
+ */
+
 
 function getPatterns(filePath: string): Pattern[] {
     let data = fs.readFileSync(path.join(__dirname, filePath), "utf-8");
@@ -38,16 +54,6 @@ function getPatterns(filePath: string): Pattern[] {
 
             let pair = line.split(" : "),
                 start = pair[0];
-
-            /**
-             * Since the absolute time is larger that the maximum possible javascript number, we assume 
-             * that all the digits prior to the last 15 stay the same for the whole trace 
-             * (which is all reasonable assumption to make, since 15 digits correspond to 10000 seconds). 
-             * However, this leaves the possilibty for this parsing algorithm to break if by any chance, 
-             * the last 15 digits are close to the max value, resulting in a wrap around later in the trace. 
-             * 
-             * We must fix this at some point.
-             */
             
             if (start.length >= config.programConfig.RELATIVE_TIME_NUM_DIGITS) {
                 let oldStart = start;
@@ -134,7 +140,7 @@ function getTopPatterns (patterns: Pattern[], numTopPatterns: number): Pattern [
     return topPatterns;
 }
 
-function absoluteTimeToRelativeTime(program: Program) {
+function absoluteTimeToRelativeTime(program: Program): Program {
     let programStart = program.programData.start;
     
     for (let thread of program.threads) {
@@ -154,6 +160,8 @@ function absoluteTimeToRelativeTime(program: Program) {
 
     program.programData.start -= programStart;
     program.programData.end -= programStart;
+
+    return program;
 }
 
 // let filterIntervals = function (program, maxRelativeTime) {
@@ -207,6 +215,22 @@ function createQueries(threads: Thread[]): void {
     fs.writeFileSync(path.join(__dirname, QUERIES_PATH), JSON.stringify(queries, null, 4));
 }
 
+function createTimeframePanelsRaw(program: Program): TimeframePanelRaw[] {
+    let timeframePanelsRaw = new Array<TimeframePanelRaw>();
+    let windowSize = Math.floor((program.programData.end - program.programData.start) / config.programConfig.NUM_SAMPLES);
+    let compressedWindowSize = Math.floor(windowSize * config.programConfig.SAMPLING_RATIO);
+
+    for (let i = 0; i < config.programConfig.NUM_SAMPLES; i++) {
+        timeframePanelsRaw.push({
+            start: program.programData.start + i * windowSize,
+            end: program.programData.start + i * windowSize + compressedWindowSize,
+            resolution: config.programConfig.RESOLUTION
+        });
+    }
+
+    return timeframePanelsRaw;
+}
+
 function main(): AjaxData {
     let threads = new Array<Thread>();
     for (let threadConfig of config.threads) {
@@ -227,15 +251,8 @@ function main(): AjaxData {
     }
 
     createQueries(threads);
-    absoluteTimeToRelativeTime(program);
-
-    let timeframePanelsRaw = new Array<TimeframePanelRaw>();
-    timeframePanelsRaw.push({
-        start: program.programData.start,
-        end: program.programData.end,
-        resolution: config.programConfig.RESOLUTION
-    })
-
+    program = absoluteTimeToRelativeTime(program);
+    let timeframePanelsRaw = createTimeframePanelsRaw(program);
     return {program, timeframePanelsRaw};
 }
 

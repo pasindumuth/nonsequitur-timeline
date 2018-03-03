@@ -44,11 +44,3 @@ function render(result: AjaxData) {
 $(document).ready(function () {
     $.ajax({url: "/data", success: render});
 });
-
-/**
- * TODO:
- * 
- * Main:
- * thread info
- * pattern sample
- */
