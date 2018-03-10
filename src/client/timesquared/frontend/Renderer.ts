@@ -1,5 +1,9 @@
 "use strict";
 
+import * as d3 from 'd3';
+import Database from './Database';
+import QueryConstructor from './QueryConstructor';
+
 var G_EVENT_HEIGHT = 4, //px
     G_THREAD_PADDING = 10, //px
     G_THREAD_PANEL_FONT_SIZE = 12, //px
@@ -74,7 +78,7 @@ var createInfopaneElement = function (infopaneContainer, eventName, thread, time
     infopaneContainer.appendChild(div);
     
     Database.getEventStats(thread, eventName, time)
-    .then(function (data) {
+    .then(function (data: any) {
         var threadText = $(text).html();
         threadText += statsHTML(data.id, data.duration, data.avg, data.stddev);
         $(text).html(threadText);
@@ -127,9 +131,8 @@ Panel.prototype.renderTimeAxis = function () {
     if (!this.resolution) {
         return;
     }
-    
     var ctx = this.timebar.getContext("2d"),
-        xToTime = d3.scale.linear()
+        xToTime = d3.scaleLinear()
                     .domain([0, this.timebar.width])
                     .range([this.startTime - this.absoluteStartTime, this.endTime - this.absoluteStartTime]),
         
@@ -251,7 +254,7 @@ Panel.prototype.setupMouseEvents = function (hoverinfobar, infopane, inverseThre
         if (edata.eventName) {
             idleTimer = setTimeout(function () {
                 Database.getEventStats(edata.thread, edata.func, edata.time)
-                .then(function (data) {
+                .then(function (data: any) {
                     threadText += statsHTML(data.id, data.duration, data.avg, data.stddev);
                     $(hoverinfobar).html(threadText);
                 });
@@ -361,7 +364,7 @@ var Renderer = function (rootDiv) {
     this.infopane = document.createElement('div');
     this.infopane.className = "infopaneContainer";
     this.renderDiv.appendChild(this.infopane);
-    
+
     rootDiv.appendChild(this.renderDiv);
 };
 
@@ -424,7 +427,7 @@ Renderer.prototype.renderMetadata_generateLayers = function (metadata, compresse
 Renderer.prototype.renderMetadata_generateEventColors = function (metadata) {
     var i, eventColor, rgbEventColor,
         colOffset = 0,
-        c20 = d3.scale.category20(i),
+        c20 = d3.scaleOrdinal(d3.schemeCategory20),
         eventsList = metadata.events.sort();
     this.eventColors = [];
     this.colToEvent = [];
@@ -494,3 +497,5 @@ Renderer.prototype.getQueryObjects = function() {
     
     return allQueries;
 };
+
+export default Renderer;

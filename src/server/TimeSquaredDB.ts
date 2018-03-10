@@ -41,16 +41,16 @@ var createReverseLookup = function(list) {
     return dict;
 };
 
-module.exports = {
+export default {
     rawQuery: rawQuery,
     
     getMetadata: function () {
         return new Promise(function (resolve, reject) {
-            var metadata = {},
+            var metadata: any = {},
                 queries = [
                     new Promise(function (resolve, reject) {
                         rawQuery("SELECT MIN(time) AS startTime, MAX(time) AS endTime FROM trace")
-                            .then(function (result) {
+                            .then(function (result: any) {
                                 metadata.startTime = result.data[0][0];
                                 metadata.endTime = result.data[0][1];
                                 resolve();
@@ -61,7 +61,7 @@ module.exports = {
                     }),
                     new Promise(function (resolve, reject) {
                         rawQuery("SELECT DISTINCT tid FROM trace ORDER BY tid")
-                            .then(function (result) {
+                            .then(function (result: any) {
                                 var threadNames = [],
                                     i;
                                 for (i = 0; i < result.data.length; i++) {
@@ -76,7 +76,7 @@ module.exports = {
                     }),
                     new Promise(function (resolve, reject) {
                         rawQuery("SELECT DISTINCT func FROM trace ORDER BY func")
-                            .then(function (result) {
+                            .then(function (result: any) {
                                 var funcNames = [],
                                     i;
                                 for (i = 0; i < result.data.length; i++) {
@@ -91,7 +91,7 @@ module.exports = {
                     }),
                     new Promise(function (resolve, reject) {
                         rawQuery("SELECT DISTINCT lock FROM trace ORDER BY lock")
-                            .then(function (result) {
+                            .then(function (result: any) {
                                 var lockNames = [],
                                     i;
                                 for (i = 0; i < result.data.length; i++) {
@@ -106,7 +106,7 @@ module.exports = {
                     }),
                     new Promise(function (resolve, reject) {
                         rawQuery("SELECT func, lock FROM event GROUP BY func, lock")
-                            .then(function (result) {
+                            .then(function (result: any) {
                                 var events = [],
                                     eventName,
                                     i;
@@ -123,7 +123,7 @@ module.exports = {
                     }),
                     new Promise(function (resolve, reject) {
                         rawQuery("SELECT MAX(stackdepth) FROM stackdepth")
-                            .then(function (result) {
+                            .then(function (result: any) {
                                 metadata.maxStackDepth = result.data[0][0];
                                 resolve();
                             })
@@ -151,7 +151,7 @@ module.exports = {
     getEvents: function() {
         return new Promise(function (resolve, reject) {
             rawQuery("SELECT * FROM eventdata")
-                .then(function (result) {
+                .then(function (result: any) {
                     var events = [],
                         i;
                     for (i = 0; i < result.data.length; i++) {

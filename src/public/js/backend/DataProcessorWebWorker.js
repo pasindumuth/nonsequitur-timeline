@@ -3,10 +3,10 @@
 
 var window = self;
 importScripts(
-    "../lib/sift.min.js",
     "ThreadProcessor.js",
-    "../shared/EventObj.js",
     "DataProcessor.js",
+    "../lib/sift.min.js",
+    "../shared/EventObj.js",
     "../shared/TransferrableEventObj.js"
 );
 

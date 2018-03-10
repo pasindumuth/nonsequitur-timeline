@@ -3,10 +3,8 @@
 import express from 'express';
 import bodyParser from 'body-parser';
 import path from 'path';
-import main from "./server/processor";
-
-var tsdb = require('./server/TimeSquaredDB');
-
+import main from './server/processor';
+import tsdb from './server/TimeSquaredDB';
 
 let app = express();
 let program = main();
@@ -31,7 +29,7 @@ app.post('/db', function(req, res) {
     var query = req.body.query;
     console.log("Executing database query:\n\t" + query);
     tsdb.rawQuery(query)
-        .then(function(result) {
+        .then(function(result: any) {
             // Brute force with existing implementation: Format the output
             // to ressemble the current text-file format
             var resultStr = "",
