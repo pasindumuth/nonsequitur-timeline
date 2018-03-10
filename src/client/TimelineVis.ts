@@ -16,7 +16,9 @@ export default class TimelineVis {
     sidebarDrawer: SidebarDrawer;
     colorPicker: ColorPicker;
 
-    constructor(timeframePanelsRaw: TimeframePanelRaw[], programRibbonData: number[], width: number) {
+    program: Program;
+
+    constructor(timeframePanelsRaw: TimeframePanelRaw[], programRibbonData: number[], width: number, program: Program) {
         this.timeframePanels = TimelineVis.refineTimeframePanels(timeframePanelsRaw);
 
         this.canvas = new Canvas(programRibbonData, this.getTotalPixelLength(), width - Config.CANVAS_MARGIN);
@@ -24,6 +26,8 @@ export default class TimelineVis {
         this.timelineBarDrawer = new TimelineBarDrawer(this.canvas);
         this.sidebarDrawer = new SidebarDrawer(this.canvas);
         this.colorPicker = new ColorPicker(programRibbonData);
+
+        this.program = program;
     }
 
     static refineTimeframePanels = function (timeframePanelsRaw: TimeframePanelRaw[]): TimeframePanel[] {
@@ -54,10 +58,10 @@ export default class TimelineVis {
         return totalPixelLength;
     }
 
-    drawProgramData(program: Program) {
+    drawProgramData() {
         let intervalsDrawn = 0;
-        for (let i = 0; i < program.threads.length; i++) {
-            let thread = program.threads[i];
+        for (let i = 0; i < this.program.threads.length; i++) {
+            let thread = this.program.threads[i];
             for (let j = 0; j < thread.patterns.length; j++) {
                 let pattern = thread.patterns[j];
                 let pixelStart: number;
@@ -144,4 +148,35 @@ export default class TimelineVis {
     //         }
     //     });
     // }
+
+    setupTimeSquaredSampling(sampler: (interval: number[], thread: number) => void) {
+        this.canvas.setupClickHandler((thread: number, pattern: number, pixelOffset: number) => {
+            let start = 0;
+            let end = this.timeframePanels.length;
+            while (start != end) {
+                let middle = Math.floor((start + end) / 2);
+                if (pixelOffset < this.timeframePanels[middle].pixelStart) end = middle;
+                else start = middle + 1;
+            }
+
+            if (start == 0) return;
+
+            // will for sure be a valid time, since pixelOffset will surely be on the program timeline.
+            let time = this.timeframePanels[start - 1].pixelToTime(pixelOffset);
+
+            let patternIntervals = this.program.threads[thread].patterns[pattern].patternIntervals;
+            start = 0; 
+            end = patternIntervals.length;
+            while (start != end) {
+                let middle = Math.floor((start + end) / 2);
+                if (time < patternIntervals[middle][0]) end = middle;
+                else start = middle + 1;
+            }
+
+            if (start == 0) return;
+
+            let sampleInterval = patternIntervals[start - 1];
+            sampler(sampleInterval, thread);
+        });
+    }
 }

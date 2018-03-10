@@ -10,9 +10,15 @@
     "threads": [
         {
             "name" : "19",
-            "threadID": 20,
+            "threadID": 19,
             "numTopPatterns" : 100,
             "filePath": "../data/trace.bin.19.patterns"
+        },
+        {
+            "name" : "20",
+            "threadID": 20,
+            "numTopPatterns" : 100,
+            "filePath": "../data/trace.bin.20.patterns"
         }
     ]
 }

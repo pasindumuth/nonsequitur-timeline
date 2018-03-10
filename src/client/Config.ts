@@ -1,10 +1,14 @@
 export default class Config {
+
+    /**
+     * Canvas parameters
+     */
     static RIBBON_HEIGHT: number = 6;
     static THREAD_TIMELINE_GAP: number = 20;
     static PROGRAM_TIMELINE_TOP_PADDING: number = 15;
     static PROGRAM_TIMELINE_BOTTOM_PADDING: number = 10;
     static PROGRAM_TIMELINE_LEFT_PADDING: number = 100;
-    static PROGRAM_TIMELINE_RIGHT_PADDING: number = 100;
+    static PROGRAM_TIMELINE_RIGHT_PADDING: number = 55;
     static CANVAS_MARGIN: number = 50;
 
     static TIMELINE_MEASURE_BAR_HEIGHT: number = 25;
@@ -29,6 +33,12 @@ export default class Config {
 
     static RIBBON_LIGHT = "#eaeaea";
     static RIBBON_DARK = "#f4f4f4";
+
+    /**
+     * Other
+     */
+
+    static MAX_SAMPLE_INTERVAL_SIZE = 100000000;
 
     static ALL_COLORS = ["#969664","#fa0064","#9632c8","#3264fa","#966464","#32c864","#fa6496",
     "#6432c8","#c864c8","#96c896","#c800c8","#fa3232","#64fa64","#6432fa","#00fafa","#00c8fa",

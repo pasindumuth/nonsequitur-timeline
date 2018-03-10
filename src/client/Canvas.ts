@@ -2,6 +2,18 @@ import $ from 'jquery';
 import Config from './Config';
 
 export default class Canvas {
+    /**
+     * Terminology: 
+     * 
+     * ribbon - the ribbon that displays a single pattern for a single thread
+     * thread timeline - the set of all ribbons for a given thread
+     * program timeline - the set of all thread timelines, including the separating space between threads
+     * timeline bar - the bar underneath the program timeline with notches indicating time
+     * canvas - the set of all html canvas elements where the program timelines are drawn,
+     *          as well as the timeline bar, and the sidebar
+     * panel - a single html canvas element in the whole canvas
+     */
+
     panels: HTMLCanvasElement[];
     totalPixelLength: number;
     programRibbonData: number[];
@@ -83,5 +95,33 @@ export default class Canvas {
         let canvasOffset = pixelOffset % this.programTimelineWidth;
     
         return {canvasIndex, canvasOffset};
+    }
+
+    setupClickHandler(clickHandler: (thread: number, pattern: number, pixelOffset: number) => void): void {
+        for (let panelIndex = 0; panelIndex < this.panels.length; panelIndex++) {
+            let panel = this.panels[panelIndex];
+            $(panel).on("click", (e) => {
+                if (!(this.programTimelineOriginX <= e.offsetX && e.offsetX < this.programTimelineOriginX + this.programTimelineWidth
+                   && this.programTimelineOriginY <= e.offsetY && e.offsetY < this.programTimelineOriginY + this.programTimelineHeight)) {
+                    return;                    
+                }
+
+                let x = e.offsetX - this.programTimelineOriginX;
+                let y = e.offsetY - this.programTimelineOriginY;
+
+                let thread;
+                for (thread = 0; thread < this.threadOffsets.length; thread++) {
+                    if (this.threadOffsets[thread] > y) break;
+                }
+
+                thread--;
+                let pattern = Math.floor((y - this.threadOffsets[thread]) / Config.RIBBON_HEIGHT);
+                if (pattern >= this.programRibbonData[thread]) return;
+                
+                let pixelOffset = panelIndex * this.programTimelineWidth + x;
+                
+                clickHandler(thread, pattern, pixelOffset);
+            });
+        }
     }
 }

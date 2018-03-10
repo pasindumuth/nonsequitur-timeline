@@ -19,7 +19,7 @@ function render(result: AjaxData) {
     }
 
     let width = $(window).width();
-    let timelineVis = new TimelineVis(timeframePanelsRaw, programRibbonData, width);
+    let timelineVis = new TimelineVis(timeframePanelsRaw, programRibbonData, width, program);
 
     let rootDiv = $("#mainPatternRenderContainer");
     for (let canvas of timelineVis.canvas.panels) {
@@ -37,11 +37,32 @@ function render(result: AjaxData) {
     console.log("start canvas drawing");
 
     timelineVis.drawTimelineBar();
-    timelineVis.drawProgramData(program);
+    timelineVis.drawProgramData();
     timelineVis.drawNameSidebar(names);
+
+    timelineVis.setupTimeSquaredSampling((interval: number[], thread: number) => {
+        if (interval[1] - interval[0] > Config.MAX_SAMPLE_INTERVAL_SIZE) return;
+        let tid = program.threads[thread].threadData.threadID;
+        let timeStart = interval[0] + program.programData.start;
+        let timeEnd = interval[1] + program.programData.start;
+        let query = createQuery(program.programData.absoluteTimePrefix, timeStart, timeEnd, tid);
+        executeQuery(query);
+
+    });
     // timelineVis.setupMouseEvents(rootDiv);
 
     console.log("all done");
+}
+
+// Put this under 'shared'
+function createQuery(absoluteTimePrefix: string, timeStart: number, timeEnd: number, threadNum: number): string {
+    return "SELECT dir, func, tid, time FROM trace "
+         + "WHERE " 
+         + absoluteTimePrefix + timeStart.toString() 
+         + " <= time AND time <= " 
+         + absoluteTimePrefix + timeStart.toString() + " + " + (timeEnd - timeStart).toString() 
+         + " and tid = " + threadNum.toString() 
+         + ";";
 }
 
 
@@ -55,8 +76,11 @@ let dataProcessorWebWorker = new Worker("./js/backend/DataProcessorWebWorker.js"
 /**
  * Automatically runs once all DOM manipulation is complete.
  */
-function main () {
-    let query = "SELECT dir, func, tid, time FROM trace limit 500;";
+
+function executeQuery(query: string) {
+    $("#mainRenderContainer").empty();
+    gRenderer = new Renderer($('#mainRenderContainer')[0]);
+    
     Database.rawQuery(decodeURI(query))
     .then(function (rawdata) {
         dataProcessorWebWorker.postMessage(["rawdata", rawdata]);
@@ -131,6 +155,8 @@ $(document).ready( function () {
             break;
         }
     };
-    
-    main();
 });
+
+/**
+ * TODO: fixed TS cutting when there is super small viz.
+ */

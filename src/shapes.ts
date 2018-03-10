@@ -17,6 +17,7 @@ export class Program {
 export class ProgramData {
     start: number;
     end: number;
+    absoluteTimePrefix: string;
 }
 
 /**
@@ -57,7 +58,6 @@ export class PatternData {
     start: number;
     end: number;
     frequency: number;
-    absTimePrefix: string;
 }
 
 export class TimeframePanelRaw {
@@ -72,4 +72,13 @@ export class TimeframePanel {
     resolution: number;
     pixelStart: number;
     pixelEnd: number;
+
+    /**
+     * @param pixelOffset: the pixel offset on the canvas
+     * @returns: time that the pixel refers to
+     */
+    pixelToTime(pixelOffset: number): number{
+        if (!(this.pixelStart <= pixelOffset && pixelOffset < this.pixelEnd)) return null;
+        return Math.floor((this.end - this.start) * (pixelOffset - this.pixelStart) / (this.pixelEnd - this.pixelStart)) + this.start;
+    }
 }

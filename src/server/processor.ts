@@ -34,9 +34,11 @@ const NUM_QUERIES_FOR_PATTERN = 10;
  */
 
 
-function getPatterns(filePath: string): Pattern[] {
+function getPatterns(filePath: string): {patterns: Pattern[], absTimePrefix: string } {
     let data = fs.readFileSync(path.join(__dirname, filePath), "utf-8");
     let lines = data.split("\n");
+
+    let absTimePrefix = null;
 
     let i = 0;
     while (lines[i].charAt(0) != "#") {
@@ -49,7 +51,6 @@ function getPatterns(filePath: string): Pattern[] {
             j = 0;
 
         let intervals = [];
-        let absTimePrefix = "";
         let patternStart = Number.MAX_VALUE;
         let patternEnd = 0;
         while (lines[k + j].length > 0 && lines[k + j].charAt(0) != "#") {
@@ -61,7 +62,7 @@ function getPatterns(filePath: string): Pattern[] {
             
             if (start.length >= config.programConfig.RELATIVE_TIME_NUM_DIGITS) {
                 let oldStart = start;
-                start = oldStart.substring(start.length - config.programConfig.RELATIVE_TIME_NUM_DIGITS, start.length);
+                start = oldStart.substring(oldStart.length - config.programConfig.RELATIVE_TIME_NUM_DIGITS, oldStart.length);
                 absTimePrefix = oldStart.substring(0, oldStart.length - config.programConfig.RELATIVE_TIME_NUM_DIGITS);
             }
 
@@ -83,7 +84,6 @@ function getPatterns(filePath: string): Pattern[] {
                 start: patternStart,
                 end: patternEnd,
                 frequency: intervals.length,
-                absTimePrefix: absTimePrefix
             },
             patternIntervals: intervals
         })
@@ -91,7 +91,7 @@ function getPatterns(filePath: string): Pattern[] {
         i = k + j;
     }
 
-    return patterns;
+    return { patterns, absTimePrefix };
 }
 
 function getThreadData(patterns: Pattern[], threadConfig: ThreadConfig): ThreadData {
@@ -112,7 +112,7 @@ function getThreadData(patterns: Pattern[], threadConfig: ThreadConfig): ThreadD
     }
 }
 
-function getProgramData(threads: Thread[]): ProgramData {
+function getProgramData(threads: Thread[]): { start: number, end: number } {
     let programStart = Number.MAX_VALUE;
     let programEnd = 0; 
 
@@ -162,9 +162,9 @@ function absoluteTimeToRelativeTime(program: Program): Program {
         thread.threadData.end -= programStart;
     }
 
-    program.programData.start -= programStart;
-    program.programData.end -= programStart;
-
+    // We leave programStart and programEnd alone, since we
+    // don't want to lose all information about the former aboslute time.
+    
     return program;
 }
 
@@ -193,7 +193,8 @@ function createQuery(absTimePrefix: string, timeStart: number, timeEnd: number, 
          + ";";
 }
 
-function createQueries(threads: Thread[]): void {
+function createQueries(program: Program): void {
+    let threads = program.threads;
     let queries = [];
     for (let i = 0; i < threads.length; i++) {
         let threadQueries = [];
@@ -206,7 +207,7 @@ function createQueries(threads: Thread[]): void {
             let intervals = pattern.patternIntervals;
             for (let k = 0; k < intervals.length && k < NUM_QUERIES_FOR_PATTERN; k++) {
                 let interval = intervals[k];
-                let query = createQuery(pattern.patternData.absTimePrefix, interval[0], interval[1], thread.threadData.threadID);
+                let query = createQuery(program.programData.absoluteTimePrefix, interval[0], interval[1], thread.threadData.threadID);
                 patternQueries.push(query);
             }
 
@@ -226,8 +227,8 @@ function createTimeframePanelsRaw(program: Program): TimeframePanelRaw[] {
 
     for (let i = 0; i < config.programConfig.NUM_SAMPLES; i++) {
         timeframePanelsRaw.push({
-            start: program.programData.start + i * windowSize,
-            end: program.programData.start + i * windowSize + compressedWindowSize,
+            start: i * windowSize,
+            end: i * windowSize + compressedWindowSize,
             resolution: config.programConfig.RESOLUTION
         });
     }
@@ -237,8 +238,11 @@ function createTimeframePanelsRaw(program: Program): TimeframePanelRaw[] {
 
 function main(): AjaxData {
     let threads = new Array<Thread>();
+    let absoluteTimePrefix: string = null;
     for (let threadConfig of config.threads) {
-        let patterns = getPatterns(threadConfig.filePath);
+        let { patterns, absTimePrefix } = getPatterns(threadConfig.filePath);
+        console.log(absTimePrefix);
+        if (absoluteTimePrefix == null) absoluteTimePrefix = absTimePrefix;
         patterns = getTopPatterns(patterns, threadConfig.numTopPatterns);
 
         let thread: Thread = {
@@ -250,11 +254,11 @@ function main(): AjaxData {
     }
 
     let program: Program = {
-        programData: getProgramData(threads),
+        programData: { ...getProgramData(threads), ...{ absoluteTimePrefix } },
         threads: threads
     }
 
-    createQueries(threads);
+    createQueries(program);
     program = absoluteTimeToRelativeTime(program);
     let timeframePanelsRaw = createTimeframePanelsRaw(program);
     return {program, timeframePanelsRaw};
