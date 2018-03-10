@@ -1,0 +1,145 @@
+/**
+ * DOM UI Styling
+ */
+
+#ProgressBar {
+    width: 100%;
+}
+
+#InputFile {
+    display: none;
+}
+
+#InputFileText {
+    width: 20%;
+}
+
+#reloadButton {
+    position: fixed;
+    right: 5px;
+    top: 5px;
+    background-color: grey;
+
+    color: white;
+    font-size: 10px;
+    text-align: center;
+    border-radius: 50%;
+
+    width: 40px;
+    height: 40px;
+    line-height: 40px;
+    z-index: 10;
+}
+#reloadButton:hover {
+    background-color: lightgrey;
+}
+
+ul.popoverList {
+    padding-left: 5px;
+    font-size: 12px;
+    list-style: none;
+    margin: 0;
+}
+
+.footerFiller {
+    height: 100px;
+}
+/**
+ * Graph Styling
+ */
+
+.infopaneContainer {
+    position: fixed;
+    bottom: 3%;
+    right: 25px;
+    z-index: 10;
+    background-color: transparent;
+    font-size: 12px;
+    cursor: text;
+}
+.infopaneElement {
+    background-color: white;
+    padding: 5px;
+    margin: 10px;
+    border-style: solid;
+    border-width: 5px;
+    border-color: white;
+}
+.infopaneElementButton {
+    color: grey;
+    text-align: right;
+    font-size: 5px;
+    height: 15px;
+    line-height: 5px;
+    width: 15px;
+    text-align: center;
+    right: 0;
+    padding: 0px;
+}
+
+.renderContainer {
+
+}
+
+.rendererRoot {
+    cursor: crosshair;
+}
+
+.rendererInfobar {
+    position: fixed;
+    bottom: 3%;
+    right: 25px;
+    z-index: 10;
+    background-color: white;
+    font-size: 20px;
+    text-align: right;
+    white-space: pre;
+    opacity: 0.9;
+    border-style: solid;
+    border-width: 5px;
+    border-color: white;
+}
+
+.rendererHoverinfobar {
+    position: absolute;
+    z-index: 11;
+    background-color: white;
+    font-size: 12px;
+    white-space: pre;
+    opacity: 0.9;
+    pointer-events: none;
+    padding: 5px;
+    margin: 10px;
+    border-style: solid;
+    border-width: 5px;
+    display: none;
+}
+
+.rendererLayer {
+    width: 100%;
+    margin-bottom: 50px;
+    white-space: nowrap;
+}
+
+.rendererLayerHostbar {
+    display: inline-block;
+}
+
+.rendererPanel {
+    display: inline-block;
+    white-space: normal;
+}
+
+.rendererPanelCanvas {
+    
+}
+.rendererPanelCanvasCompressed {
+    background-color: lightgrey;
+}
+.rendererPanelCanvasCompressed:hover {
+    background-color: grey;
+}
+
+.rendererPanelTimebar {
+    background-color: #f1f1f1;
+}

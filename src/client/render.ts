@@ -17,7 +17,7 @@ function render(result: AjaxData) {
     let width = $(window).width();
     let timelineVis = new TimelineVis(timeframePanelsRaw, programRibbonData, width);
 
-    let rootDiv = $("#mainRenderContainer");
+    let rootDiv = $("#mainPatternRenderContainer");
     for (let canvas of timelineVis.canvas.panels) {
         let div = document.createElement("div");
         $(div).addClass("canvas-div");

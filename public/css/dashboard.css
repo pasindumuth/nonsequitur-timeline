@@ -1,0 +1,19 @@
+#optionsButton {
+    color: grey;
+    font-size: 20px;
+    float: right;
+    padding: 20px;
+}
+
+.historyElement {
+    background-color: #F0F0F0;
+    padding: 20px;
+    margin: 20px;
+    border-radius: 10px;
+}
+
+.historyBtn {
+    float: right;
+    background-color: transparent;
+    border-color: transparent;
+}
