@@ -28,24 +28,24 @@ function main () {
     // If we have a query string, then automatically send it to the backend
     var url = window.location.href.split('?'),
         query;
+
     if (url.length > 1) {
         query = url[1];
-        if (query.length === 0) {
-            query = "SELECT dir, func, tid, time FROM trace limit 500";
-        }
-        
-        $("#filenameHeader").html(decodeURI(query));
-        
-        Database.rawQuery(decodeURI(query))
-        .then(function (rawdata) {
-            // transitionUI(decodeURI(query));
-            dataProcessorWebWorker.postMessage(["rawdata", rawdata]);
-            updateProgressBar("100%", "First-pass through logfile...");
-        })
-        .catch(function (err) {
-            $("#errorMessage").html("Error: ".bold() + err).show();
-        });
+    } else {
+        query = "SELECT dir, func, tid, time FROM trace limit 500;";
     }
+
+    $("#filenameHeader").html(decodeURI(query));
+    
+    Database.rawQuery(decodeURI(query))
+    .then(function (rawdata) {
+        // transitionUI(decodeURI(query));
+        dataProcessorWebWorker.postMessage(["rawdata", rawdata]);
+        updateProgressBar("100%", "First-pass through logfile...");
+    })
+    .catch(function (err) {
+        $("#errorMessage").html("Error: ".bold() + err).show();
+    });
 }
 
 $(document).ready( function () {

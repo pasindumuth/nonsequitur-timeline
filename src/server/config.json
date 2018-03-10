@@ -1,9 +1,9 @@
 {
     "programConfig" : {
-        "RESOLUTION": 500000,
+        "RESOLUTION": 2000000,
         "RELATIVE_TIME_NUM_DIGITS": 15,
         "MAX_RELATIVE_TIME": 1000000,
-        "SAMPLING_RATIO": 1,
+        "SAMPLING_RATIO": 0.1,
         "NUM_SAMPLES": 200
     },
     

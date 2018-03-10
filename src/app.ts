@@ -5,7 +5,7 @@ import bodyParser from 'body-parser';
 import path from 'path';
 import main from "./server/processor";
 
-// var tsdb = require('./server/TimeSquaredDB');
+var tsdb = require('./server/TimeSquaredDB');
 
 
 let app = express();
@@ -27,49 +27,49 @@ app.get("/data", function (request, response) {
     response.end();    
 });
 
-// app.post('/db', function(req, res) {
-//     var query = req.body.query;
-//     console.log("Executing database query:\n\t" + query);
-//     tsdb.rawQuery(query)
-//         .then(function(result) {
-//             // Brute force with existing implementation: Format the output
-//             // to ressemble the current text-file format
-//             var resultStr = "",
-//                 i;
-//             for (i = 0; i < result.data.length; i++) {
-//                 resultStr += result.data[i].join(" ");
-//                 resultStr += "\n";
-//             }
-//             res.send(resultStr);
-//             console.log("Sent " + result.data.length + " tuples");
-//         })
-//         .catch(function(err) {
-//             res.sendStatus(500);
-//             console.log(err);
-//         });
-// });
+app.post('/db', function(req, res) {
+    var query = req.body.query;
+    console.log("Executing database query:\n\t" + query);
+    tsdb.rawQuery(query)
+        .then(function(result) {
+            // Brute force with existing implementation: Format the output
+            // to ressemble the current text-file format
+            var resultStr = "",
+                i;
+            for (i = 0; i < result.data.length; i++) {
+                resultStr += result.data[i].join(" ");
+                resultStr += "\n";
+            }
+            res.send(resultStr);
+            console.log("Sent " + result.data.length + " tuples");
+        })
+        .catch(function(err) {
+            res.sendStatus(500);
+            console.log(err);
+        });
+});
 
-// app.post('/db/metadata', function(req, res) {
-//     tsdb.getMetadata()
-//         .then(function(result) {
-//             res.send(result);
-//         })
-//         .catch(function(err) {
-//             res.sendStatus(500);
-//             console.log(err);
-//         });
-// });
+app.post('/db/metadata', function(req, res) {
+    tsdb.getMetadata()
+        .then(function(result) {
+            res.send(result);
+        })
+        .catch(function(err) {
+            res.sendStatus(500);
+            console.log(err);
+        });
+});
 
-// app.post('/db/events', function(req, res) {
-//     tsdb.getEvents()
-//         .then(function(result) {
-//             res.send(result);
-//         })
-//         .catch(function(err) {
-//             res.sendStatus(500);
-//             console.log(err);
-//         });
-// });
+app.post('/db/events', function(req, res) {
+    tsdb.getEvents()
+        .then(function(result) {
+            res.send(result);
+        })
+        .catch(function(err) {
+            res.sendStatus(500);
+            console.log(err);
+        });
+});
 
 
 const server = app.listen(4000, () => {
