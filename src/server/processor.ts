@@ -34,10 +34,7 @@ const NUM_QUERIES_FOR_PATTERN = 10;
  */
 
 
-function getPatterns(filePath: string): {patterns: Pattern[], absTimePrefix: string } {
-    let data = fs.readFileSync(path.join(__dirname, filePath), "utf-8");
-    let lines = data.split("\n");
-
+function getPatterns(lines: string[]): {patterns: Pattern[], absTimePrefix: string } {
     let absTimePrefix = null;
 
     let i = 0;
@@ -236,12 +233,24 @@ function createTimeframePanelsRaw(program: Program): TimeframePanelRaw[] {
     return timeframePanelsRaw;
 }
 
+function appendFunctions(functions: Set<string>, lines: string[]): void {
+    if (lines.length < 2) return;
+    let i = 1;
+    while (lines[i].includes("\t")) {
+        let func = lines[i].split("\t")[1];
+        functions.add(func);
+        i++;
+    }
+}
+
 function main(): AjaxData {
     let threads = new Array<Thread>();
     let absoluteTimePrefix: string = null;
+    let functions = new Set<string>();
     for (let threadConfig of config.threads) {
-        let { patterns, absTimePrefix } = getPatterns(threadConfig.filePath);
-        console.log(absTimePrefix);
+        let lines = fs.readFileSync(path.join(__dirname, threadConfig.filePath), "utf-8").split("\n");
+        appendFunctions(functions, lines);
+        let { patterns, absTimePrefix } = getPatterns(lines);
         if (absoluteTimePrefix == null) absoluteTimePrefix = absTimePrefix;
         patterns = getTopPatterns(patterns, threadConfig.numTopPatterns);
 
@@ -261,7 +270,11 @@ function main(): AjaxData {
     createQueries(program);
     program = absoluteTimeToRelativeTime(program);
     let timeframePanelsRaw = createTimeframePanelsRaw(program);
-    return {program, timeframePanelsRaw};
+    return {
+        program: program,
+        functions: Array.from(functions),
+        timeframePanelsRaw: timeframePanelsRaw
+    }
 }
 
 export default main;

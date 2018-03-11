@@ -46,7 +46,8 @@ var DataProcessor = function () {
         
         // Add our funcname+lockname to our metadata
         if (lockName !== "") {
-            eventName = functionName + ":::" + lockName;
+            // eventName = functionName + ":::" + lockName;
+            eventName = functionName;
         } else {
             eventName = functionName;
         }

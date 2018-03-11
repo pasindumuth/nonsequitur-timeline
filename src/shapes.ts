@@ -1,5 +1,6 @@
 export class AjaxData {
     program: Program;
+    functions: string[];
     timeframePanelsRaw: TimeframePanelRaw[];
 }
 

@@ -49,7 +49,8 @@ function render(result: AjaxData) {
         executeQuery(query);
 
     });
-    // timelineVis.setupMouseEvents(rootDiv);
+
+    gRenderer = new Renderer($('#mainRenderContainer').get(0), result.functions),
 
     console.log("all done");
 }
@@ -66,9 +67,9 @@ function createQuery(absoluteTimePrefix: string, timeStart: number, timeEnd: num
 }
 
 
-let dataProcessorWebWorker = new Worker("./js/backend/DataProcessorWebWorker.js"),
-    gRenderer = new Renderer($('#mainRenderContainer')[0]),
-    gMetadata = null,
+let dataProcessorWebWorker = new Worker("./js/backend/DataProcessorWebWorker.js");
+let gRenderer: Renderer = null;
+let gMetadata = null,
     gStagedQueries = [],
     gStagedQueriesIndex = 0,
     gCompressedRegionThresholdFactor = 2000;
@@ -79,8 +80,8 @@ let dataProcessorWebWorker = new Worker("./js/backend/DataProcessorWebWorker.js"
 
 function executeQuery(query: string) {
     $("#mainRenderContainer").empty();
-    gRenderer = new Renderer($('#mainRenderContainer')[0]);
-    
+    gRenderer.clear();
+
     Database.rawQuery(decodeURI(query))
     .then(function (rawdata) {
         dataProcessorWebWorker.postMessage(["rawdata", rawdata]);
