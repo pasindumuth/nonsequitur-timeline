@@ -1,6 +1,6 @@
 import $ from 'jquery';
 import Config from './Config';
-import { Program, TimeframePanelRaw, TimeframePanel } from '../shapes';
+import { Program, TimeframePanelRaw, TimeframePanel } from '../shared/shapes';
 import Canvas from './Canvas';
 import ProgramTimelineDrawer from './drawers/ProgramTimelineDrawer';
 import TimelineBarDrawer from './drawers/TimelineBarDrawer';
@@ -121,7 +121,7 @@ export default class TimelineVis {
     }
     
     drawNameSidebar(names: string[]) {
-        this.sidebarDrawer.drawNameSidebar(names);
+        this.sidebarDrawer.drawSidebar(names);
     }
  
     // setupMouseEvents(rootDiv) {

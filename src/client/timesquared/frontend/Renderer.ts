@@ -188,7 +188,7 @@ class Panel {
         // From db, our strings are not normalized and need to be left as is
         let event_lockName = eventObj.denormalized ? eventObj.lockName : metadata.locknames[eventObj.lockName];
         let event_functionName = eventObj.denormalized ? eventObj.functionName : metadata.functions[eventObj.functionName];
-        let eventType = event_functionName + (event_lockName ? ":::" + event_lockName : "");
+        let eventType = event_functionName;
 
         let eventColor = eventColors[eventType];
         if (eventColor === undefined) {
@@ -374,6 +374,8 @@ export default class Renderer {
     infopane: HTMLDivElement;
     vizMaxWidth: number;
 
+    functions: string[];
+
     layers: any;
     threadOffsets: number[];
     inverseThreadOffsets: number[];
@@ -382,7 +384,7 @@ export default class Renderer {
     
     constructor(rootDiv: HTMLElement, functions: string[]) {
         this.rootDiv = rootDiv;
-        this.renderMetadata_generateEventColors(functions);
+        this.functions = functions;
         this.setup();
     }
 
@@ -414,6 +416,7 @@ export default class Renderer {
         this.vizMaxWidth = parseInt(rootDivWidth, 10) - G_HOSTBAR_WIDTH;
         
         this.renderMetadata_generateLayers(metadata, compressedMetadata[1] || []);
+        this.renderMetadata_generateEventColors(metadata);
         this.renderMetadata_generateThreadOffsets(metadata);
         // for (i = 0; i < this.layers.length; i++) {
         //     this.layers[i].renderHostbar(metadata, this.threadOffsets);
@@ -462,10 +465,15 @@ export default class Renderer {
         }
     };
 
-    renderMetadata_generateEventColors(functions: string[]) {
-        var i, eventColor, rgbEventColor,
+    renderMetadata_generateEventColors(metadata: MetaData) {
+        let i, eventColor, rgbEventColor,
             colOffset = 0,
             c20 = d3.scaleOrdinal(d3.schemeCategory20);
+        
+        let functions = Array.from(this.functions);
+        for (let func of metadata.functions) {
+            if (!functions.includes(func)) functions.push(func);
+        }
         this.eventColors = [];
         this.colToEvent = [];
         for (i = 0; i < functions.length; i++) {
@@ -521,14 +529,12 @@ export default class Renderer {
      * @return array of query objects
      */
     getQueryObjects() {
-        var i, j,
-            startTime, endTime,
-            allQueries = [];
+        let allQueries = [];
         
-        for (i = 0; i < this.layers.length; i += G_NLAYERS_PER_QUERY_BATCH) {
-            j = Math.min( i + G_NLAYERS_PER_QUERY_BATCH - 1, this.layers.length - 1);
-            startTime = this.layers[i].startTime();
-            endTime = this.layers[j].endTime();
+        for (let i = 0; i < this.layers.length; i += G_NLAYERS_PER_QUERY_BATCH) {
+            let j = Math.min( i + G_NLAYERS_PER_QUERY_BATCH - 1, this.layers.length - 1);
+            let startTime = this.layers[i].startTime();
+            let endTime = this.layers[j].endTime();
             allQueries.push(QueryConstructor.queryTime(startTime, endTime));
         }
         
@@ -539,4 +545,7 @@ export default class Renderer {
 /**
  * TODO have a proper interface for data exchange between frontend and backend 
  * Provide types to function parameters.
+ * 
+ * The functions we preload might not be the complete set (There are lots of spinlocks...
+ * just add these in on demand)
  */

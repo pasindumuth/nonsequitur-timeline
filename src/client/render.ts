@@ -1,11 +1,22 @@
 import $ from 'jquery';
 import TimelineVis from './TimelineVis';
 import Config from './Config';
-import { AjaxData } from '../shapes';
+import { AjaxData } from '../shared/shapes';
+import Utils from '../shared/Utils';
 
 import Renderer from './timesquared/frontend/Renderer';
 import Database from './timesquared/frontend/Database';
 import TransferrableEventObj from './timesquared/shared/TransferrableEventObj';
+
+
+let dataProcessorWebWorker = new Worker("./js/backend/DataProcessorWebWorker.js");
+let gRenderer: Renderer = null;
+let sharedFunctions = null;
+let gMetadata = null,
+    gStagedQueries = [],
+    gStagedQueriesIndex = 0,
+    gCompressedRegionThresholdFactor = 2000;
+
 
 function render(result: AjaxData) {
     console.log("start rendering");
@@ -29,59 +40,40 @@ function render(result: AjaxData) {
         $(rootDiv).append(div);
     }
 
-    let names = new Array<string>();
+    let threadIDs = new Array<string>();
     for (let thread of program.threads) {
-        names.push(thread.threadData.name);
+        threadIDs.push(thread.threadData.threadID);
     }
     
     console.log("start canvas drawing");
 
     timelineVis.drawTimelineBar();
     timelineVis.drawProgramData();
-    timelineVis.drawNameSidebar(names);
+    timelineVis.drawNameSidebar(threadIDs);
 
     timelineVis.setupTimeSquaredSampling((interval: number[], thread: number) => {
         if (interval[1] - interval[0] > Config.MAX_SAMPLE_INTERVAL_SIZE) return;
         let tid = program.threads[thread].threadData.threadID;
         let timeStart = interval[0] + program.programData.start;
         let timeEnd = interval[1] + program.programData.start;
-        let query = createQuery(program.programData.absoluteTimePrefix, timeStart, timeEnd, tid);
+        let query = Utils.createQuery(program.programData.absoluteTimePrefix, timeStart, timeEnd, tid);
         executeQuery(query);
 
     });
 
-    gRenderer = new Renderer($('#mainRenderContainer').get(0), result.functions),
+    sharedFunctions = result.functions;
+    gRenderer = new Renderer($('#mainRenderContainer').get(0), result.functions);
 
     console.log("all done");
 }
-
-// Put this under 'shared'
-function createQuery(absoluteTimePrefix: string, timeStart: number, timeEnd: number, threadNum: number): string {
-    return "SELECT dir, func, tid, time FROM trace "
-         + "WHERE " 
-         + absoluteTimePrefix + timeStart.toString() 
-         + " <= time AND time <= " 
-         + absoluteTimePrefix + timeStart.toString() + " + " + (timeEnd - timeStart).toString() 
-         + " and tid = " + threadNum.toString() 
-         + ";";
-}
-
-
-let dataProcessorWebWorker = new Worker("./js/backend/DataProcessorWebWorker.js");
-let gRenderer: Renderer = null;
-let gMetadata = null,
-    gStagedQueries = [],
-    gStagedQueriesIndex = 0,
-    gCompressedRegionThresholdFactor = 2000;
 
 /**
  * Automatically runs once all DOM manipulation is complete.
  */
 
 function executeQuery(query: string) {
-    $("#mainRenderContainer").empty();
-    gRenderer.clear();
-
+    gRenderer = new Renderer($('#mainRenderContainer').get(0), sharedFunctions);
+    
     Database.rawQuery(decodeURI(query))
     .then(function (rawdata) {
         dataProcessorWebWorker.postMessage(["rawdata", rawdata]);

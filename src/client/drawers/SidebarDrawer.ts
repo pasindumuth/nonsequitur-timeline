@@ -8,8 +8,8 @@ export default class SidebarDrawer {
         this.canvas = canvas;
     }
 
-    drawNameSidebar(names: string[]) {
-        if (names.length != this.canvas.threadOffsets.length) return;
+    drawSidebar(threadIDs: string[]) {
+        if (threadIDs.length != this.canvas.threadOffsets.length) return;
     
         let sidebarX = this.canvas.programTimelineOriginX - Config.NAME_SIDE_BAR_LEFT_OFFSET;
         let sidebarY = this.canvas.programTimelineOriginY;
@@ -26,7 +26,7 @@ export default class SidebarDrawer {
                 context.font = Config.NAME_FONT_SIZE + "px" + " " + Config.NAME_FONT; 
                 context.fillStyle = Config.NAME_FONT_COLOR; 
                 context.textAlign = "center"; 
-                context.fillText(names[i], centerOffset, centerHeight);
+                context.fillText(threadIDs[i], centerOffset, centerHeight);
             }
         }
     }

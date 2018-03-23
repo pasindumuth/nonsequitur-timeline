@@ -12,8 +12,7 @@ export interface ProgramConfig {
 }
 
 export interface ThreadConfig {
-    name : string;
-    threadID: number;
+    threadID: string;
     numTopPatterns : number;
     filePath: string;
 }

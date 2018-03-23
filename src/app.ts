@@ -3,8 +3,8 @@
 import express from 'express';
 import bodyParser from 'body-parser';
 import path from 'path';
-import main from './server/processor';
 import tsdb from './server/TimeSquaredDB';
+import main from './server/processor'
 
 let app = express();
 let program = main();
