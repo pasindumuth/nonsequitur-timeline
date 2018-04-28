@@ -5,7 +5,7 @@ import Database from './Database';
 import QueryConstructor from './QueryConstructor';
 import { MetaData, Event } from '../shared/shapes';
 
-var G_COMPRESSED_VIZ_WIDTH = 50, //px
+let G_COMPRESSED_VIZ_WIDTH = 50, //px
     G_EVENT_HEIGHT = 4, //px
     G_THREAD_PADDING = 10, //px
     G_THREAD_PANEL_FONT_SIZE = 12, //px
@@ -22,17 +22,17 @@ var G_COMPRESSED_VIZ_WIDTH = 50, //px
      */
     G_NLAYERS_PER_QUERY_BATCH = 2;
 
-function byte2Hex (n) {
-    var str = n.toString(16);
+function byte2Hex (n: number): string {
+    let str = n.toString(16);
     return "00".substr(str.length) + str;
 }
 
-function rgbToColorHexstring (r,g,b) {
+function rgbToColorHexstring (r: number, g: number, b: number): string {
     return '#' + byte2Hex(r) + byte2Hex(g) + byte2Hex(b);
 }
 
-function colorHexstringToRgb (hex) {
-    var col = [],
+function colorHexstringToRgb (hex: string): number[] {
+    let col = [],
         i;
     for (i = 1; i < 7; i+=2) {
         col.push(parseInt(hex.substr(i, 2), 16));
@@ -58,7 +58,7 @@ function statsHTML (id, duration, avg, stddev) {
  */
 function createInfopaneElement(infopaneContainer: HTMLDivElement, eventName: string, thread: number, 
                                time: number, absStartTime: number, color: string, zoomToDiv: HTMLElement) {
-    var div =  document.createElement("div"),
+    let div =  document.createElement("div"),
         text = document.createElement("div"),
         closeButton = document.createElement("button"),
         relTime = Math.floor(time - absStartTime).toLocaleString();
@@ -80,22 +80,6 @@ function createInfopaneElement(infopaneContainer: HTMLDivElement, eventName: str
     div.appendChild(text);
     div.appendChild(closeButton);
     infopaneContainer.appendChild(div);
-    
-    Database.getEventStats(thread, eventName, time)
-    .then(function (data: any) {
-        var threadText = $(text).html();
-        threadText += statsHTML(data.id, data.duration, data.avg, data.stddev);
-        $(text).html(threadText);
-    })
-    .catch(function (err) {
-        console.log(err);
-        console.log("Bad query params:");
-        console.log({
-            thread: thread,
-            func: eventName,
-            time: time
-        });
-    });
 };
 
 /**
@@ -261,13 +245,7 @@ class Panel {
             
             clearTimeout(idleTimer);
             if (edata.eventName) {
-                idleTimer = setTimeout(() => {
-                    Database.getEventStats(edata.thread, edata.func, edata.time)
-                    .then((data: any) => {
-                        threadText += statsHTML(data.id, data.duration, data.avg, data.stddev);
-                        $(hoverinfobar).html(threadText);
-                    });
-                }, G_PANEL_MOUSE_HOVER_IDLE_TIME);
+                idleTimer = setTimeout(() => {}, G_PANEL_MOUSE_HOVER_IDLE_TIME);
             }
         });
         
@@ -367,24 +345,22 @@ class Layer {
 /**
  * Renderer
  */
-export default class Renderer {
+export class Renderer {
     rootDiv: HTMLElement;
     renderDiv: HTMLDivElement;
     hoverinfobar: HTMLDivElement;
     infopane: HTMLDivElement;
     vizMaxWidth: number;
-
-    functions: string[];
+ 
+    functionData: FunctionData;
 
     layers: any;
     threadOffsets: number[];
     inverseThreadOffsets: number[];
-    eventColors: any;
-    colToEvent: any;
-    
-    constructor(rootDiv: HTMLElement, functions: string[]) {
+
+    constructor(rootDiv: HTMLElement, functionData: FunctionData) {
         this.rootDiv = rootDiv;
-        this.functions = functions;
+        this.functionData = functionData;
         this.setup();
     }
 
@@ -410,7 +386,7 @@ export default class Renderer {
 
     // FIX THIS CRUD
     renderMetadata(metadata: MetaData, compressedMetadata) {
-        var i;
+        let i;
         compressedMetadata = compressedMetadata || [];
         let rootDivWidth = window.getComputedStyle(this.rootDiv).width; // save to prevent resizing issues
         this.vizMaxWidth = parseInt(rootDivWidth, 10) - G_HOSTBAR_WIDTH;
@@ -421,11 +397,11 @@ export default class Renderer {
         // for (i = 0; i < this.layers.length; i++) {
         //     this.layers[i].renderHostbar(metadata, this.threadOffsets);
         // }
-        this.renderMetadata_generateMouseListeners(metadata, this.inverseThreadOffsets, this.colToEvent);
+        this.renderMetadata_generateMouseListeners(metadata, this.inverseThreadOffsets, this.functionData.colToEvent);
     };
 
     renderMetadata_generateLayers (metadata: MetaData, compressedRegions) {
-        var resolution = metadata.minElapsedTime, // time per pixel
+        let resolution = metadata.minElapsedTime, // time per pixel
             vizHeight = ((metadata.maxStackDepth * G_EVENT_HEIGHT) + G_THREAD_PADDING) * metadata.threads.length,
             currTime = metadata.startTime,
             nextTime,
@@ -466,34 +442,30 @@ export default class Renderer {
     };
 
     renderMetadata_generateEventColors(metadata: MetaData) {
-        let i, eventColor, rgbEventColor,
-            colOffset = 0,
-            c20 = d3.scaleOrdinal(d3.schemeCategory20);
-        
-        let functions = Array.from(this.functions);
+        let eventColor;
+        let functions = this.functionData.functions;
         for (let func of metadata.functions) {
-            if (!functions.includes(func)) functions.push(func);
-        }
-        this.eventColors = [];
-        this.colToEvent = [];
-        for (i = 0; i < functions.length; i++) {
-            if (i % 20 === 0) {
-                colOffset++;
-            }
-            if (colOffset === 0) {
-                eventColor = c20(i);
-            } else {
-                rgbEventColor = colorHexstringToRgb(c20(i));
-                eventColor = rgbToColorHexstring(rgbEventColor[0] - colOffset, rgbEventColor[1] - colOffset, rgbEventColor[2] - colOffset);
-            }
+            if (!functions.includes(func)) {
+                let index = functions.length;
+                let colOffset = Math.floor(index / 20);
+                
+                if (colOffset == 0) {
+                    eventColor = d3.schemeCategory20[index % 20];
+                } else {
+                    let rgbEventColor = colorHexstringToRgb(d3.schemeCategory20[index % 20]);
+                    eventColor = rgbToColorHexstring(rgbEventColor[0] - colOffset, rgbEventColor[1] - colOffset, rgbEventColor[2] - colOffset);
+                }
 
-            this.eventColors[functions[i]] = eventColor;
-            this.colToEvent[eventColor] = functions[i];		
+                this.functionData.eventColors[func] = eventColor;
+                this.functionData.colToEvent[eventColor] = func;
+
+                functions.push(func);
+            }
         }
     };
 
     renderMetadata_generateThreadOffsets (metadata: MetaData) {
-        var i;
+        let i;
         this.threadOffsets = [];
         this.inverseThreadOffsets = [];
         for (i = 0; i < metadata.threads.length; i++) {
@@ -503,7 +475,7 @@ export default class Renderer {
     };
 
     renderMetadata_generateMouseListeners (metadata: MetaData, inverseThreadOffsets, colToEvent) {
-        var i, j, threadSpacing;
+        let i, j, threadSpacing;
         threadSpacing = (metadata.maxStackDepth * G_EVENT_HEIGHT) + G_THREAD_PADDING;
         for (i = 0; i < this.layers.length; i++) {
             for (j = 0; j < this.layers[i].panels.length; j++) {
@@ -513,11 +485,11 @@ export default class Renderer {
     };
 
     renderEvent (metadata: MetaData, event: Event) {
-        var i, j;
+        let i, j;
         for (i = 0; i < this.layers.length; i++) {
             for (j = 0; j < this.layers[i].panels.length; j++) {
                 this.layers[i].panels[j].renderEvent(
-                    metadata, event, this.eventColors, this.threadOffsets);
+                    metadata, event, this.functionData.eventColors, this.threadOffsets);
             }
         }
     };
@@ -540,6 +512,18 @@ export default class Renderer {
         
         return allQueries;
     };
+}
+
+export class FunctionData {
+    functions: Array<string>;
+    eventColors: Map<string, number[]>;
+    colToEvent: Map<number[], string>;
+
+    constructor(functions: string[]) {
+        this.functions = functions;
+        this.eventColors = new Map<string, number[]>();
+        this.colToEvent = new Map<number[], string>();
+    }
 }
 
 /**

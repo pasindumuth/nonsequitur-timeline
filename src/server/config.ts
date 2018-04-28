@@ -6,7 +6,6 @@ export interface Config {
 export interface ProgramConfig {
     RESOLUTION: number;
     RELATIVE_TIME_NUM_DIGITS: number;
-    MAX_RELATIVE_TIME: number;
     SAMPLING_RATIO: number;
     NUM_SAMPLES: number; 
 }

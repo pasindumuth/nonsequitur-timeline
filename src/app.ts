@@ -1,5 +1,48 @@
 "use strict";
 
+// import { Client}  from 'pg';
+
+// const PGDB_OPTIONS = {
+//     user: 'pasindumuthukuda',
+//     host: 'localhost',
+//     database: 'dinamite',
+//     password: '',
+//     port: 5432,
+// }
+
+// let query = "SELECT * FROM sys.trace LIMIT 2;";
+// let conn = new Client(PGDB_OPTIONS);
+// conn.connect();
+// conn.query(query, (err, result) => {
+//     console.log(err, result);
+//     conn.end()
+// });
+
+// function rawQuery (query: string) {
+//     let conn = new Client(PGDB_OPTIONS);
+//     return new Promise(function (resolve, reject) {
+//         conn.connect();
+//         conn.query(query, (err, result) => {
+//             console.log("BLAHBLAH");
+//             if (result) {
+//                 console.log(result);
+//                 resolve(result);
+//             } else {
+//                 reject(err);
+//             }
+//             conn.end()
+//         });
+//     });
+// };
+
+// rawQuery("SELECT * FROM sys.trace LIMIT 2")
+//     .then(function(result) {
+//         console.log(result);
+//     })
+//     .catch(function (err) {
+//         console.log(err);
+//     });
+
 import express from 'express';
 import bodyParser from 'body-parser';
 import path from 'path';
@@ -34,8 +77,16 @@ app.post('/db', function(req, res) {
             // to ressemble the current text-file format
             var resultStr = "",
                 i;
+            // for (i = 0; i < result.data.length; i++) {
+            //     resultStr += result.data[i].join(" ");
+            //     resultStr += "\n";
+            // }
+
             for (i = 0; i < result.data.length; i++) {
-                resultStr += result.data[i].join(" ");
+                resultStr += result.data[i].dir ? 1 : 0;
+                resultStr += " " + result.data[i].func;
+                resultStr += " " + result.data[i].tid;
+                resultStr += " " + result.data[i].time;
                 resultStr += "\n";
             }
             res.send(resultStr);

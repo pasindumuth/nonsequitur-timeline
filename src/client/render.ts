@@ -4,14 +4,14 @@ import Config from './Config';
 import { AjaxData } from '../shared/shapes';
 import Utils from '../shared/Utils';
 
-import Renderer from './timesquared/frontend/Renderer';
+import { FunctionData, Renderer } from './timesquared/frontend/Renderer';
 import Database from './timesquared/frontend/Database';
 import TransferrableEventObj from './timesquared/shared/TransferrableEventObj';
 
 
 let dataProcessorWebWorker = new Worker("./js/backend/DataProcessorWebWorker.js");
 let gRenderer: Renderer = null;
-let sharedFunctions = null;
+let functionData: FunctionData;
 let gMetadata = null,
     gStagedQueries = [],
     gStagedQueriesIndex = 0,
@@ -23,14 +23,19 @@ function render(result: AjaxData) {
     let timeframePanelsRaw = result.timeframePanelsRaw;
     let program = result.program;
 
-    let programRibbonData = new Array<number>();
+    let programRibbonToPatternID = new Array<number[]>();
     for (let thread of program.threads) {
-        let patterns = thread.patterns;
-        programRibbonData.push(patterns.length);
+        let threadRibbonToPatternID = new Array<number>();
+        for (let pattern of thread.patterns) {
+            threadRibbonToPatternID.push(pattern.patternData.patternID);
+        }
+        programRibbonToPatternID.push(threadRibbonToPatternID);
     }
 
+    console.log(programRibbonToPatternID);
+
     let width = $(window).width();
-    let timelineVis = new TimelineVis(timeframePanelsRaw, programRibbonData, width, program);
+    let timelineVis = new TimelineVis(timeframePanelsRaw, programRibbonToPatternID, width, program);
 
     let rootDiv = $("#mainPatternRenderContainer");
     for (let canvas of timelineVis.canvas.panels) {
@@ -61,8 +66,8 @@ function render(result: AjaxData) {
 
     });
 
-    sharedFunctions = result.functions;
-    gRenderer = new Renderer($('#mainRenderContainer').get(0), result.functions);
+    functionData = new FunctionData(result.functions);
+    gRenderer = new Renderer($('#mainRenderContainer').get(0), functionData);
 
     console.log("all done");
 }
@@ -72,7 +77,7 @@ function render(result: AjaxData) {
  */
 
 function executeQuery(query: string) {
-    gRenderer = new Renderer($('#mainRenderContainer').get(0), sharedFunctions);
+    gRenderer = new Renderer($('#mainRenderContainer').get(0), functionData);
     
     Database.rawQuery(decodeURI(query))
     .then(function (rawdata) {

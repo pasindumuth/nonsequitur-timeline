@@ -1,17 +1,16 @@
 {
     "programConfig" : {
-        "RESOLUTION": 200000,
+        "RESOLUTION": 1000000,
         "RELATIVE_TIME_NUM_DIGITS": 15,
-        "MAX_RELATIVE_TIME": 1000000,
-        "SAMPLING_RATIO": 0.1,
-        "NUM_SAMPLES": 200
+        "SAMPLING_RATIO": 1,
+        "NUM_SAMPLES": 1
     },
     
     "threads": [
         {
-            "threadID": "19",
-            "numTopPatterns" : 100,
-            "filePath": "../data/trace.bin.19.patterns"
+            "threadID": "7",
+            "numTopPatterns" : 20,
+            "filePath": "../data/thread.7.patterns"
         }
     ]
 }

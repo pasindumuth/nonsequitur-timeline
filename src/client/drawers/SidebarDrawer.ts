@@ -18,7 +18,7 @@ export default class SidebarDrawer {
             let centerOffset = sidebarX + Config.NAME_SIDE_BAR_LEFT_OFFSET / 2;
             let centerHeight = sidebarY 
                              + this.canvas.threadOffsets[i]
-                             + this.canvas.programRibbonData[i] * Config.RIBBON_HEIGHT / 2 
+                             + this.canvas.threadRibbonLength[i] * Config.RIBBON_HEIGHT / 2 
                              + Config.NAME_FONT_SIZE / 2;
     
             for (let canvas of this.canvas.panels) {

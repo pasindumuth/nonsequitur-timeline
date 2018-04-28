@@ -16,7 +16,7 @@ export default class Canvas {
 
     panels: HTMLCanvasElement[];
     totalPixelLength: number;
-    programRibbonData: number[];
+    threadRibbonLength: number[];
     threadOffsets: number[];
 
     panelWidth: number;
@@ -27,12 +27,12 @@ export default class Canvas {
     programTimelineOriginX: number;
     programTimelineOriginY: number;
 
-    constructor(programRibbonData: number[], totalPixelLength: number, width: number) {
+    constructor(threadRibbonLength: number[], totalPixelLength: number, width: number) {
         this.totalPixelLength = totalPixelLength;
-        this.programRibbonData = programRibbonData;
+        this.threadRibbonLength = threadRibbonLength;
 
         this.panelWidth = width;
-        this.programTimelineHeight = Canvas.getTimelineHeight(programRibbonData);
+        this.programTimelineHeight = Canvas.getTimelineHeight(threadRibbonLength);
         this.programTimelineWidth = this.panelWidth - Config.PROGRAM_TIMELINE_LEFT_PADDING - Config.PROGRAM_TIMELINE_RIGHT_PADDING;
         this.panelHeight = this.programTimelineHeight 
                           + Config.PROGRAM_TIMELINE_TOP_PADDING 
@@ -44,20 +44,20 @@ export default class Canvas {
 
         let numCanvas = Math.ceil(this.totalPixelLength / this.programTimelineWidth);
         this.panels = Canvas.getPanels(numCanvas, this.panelWidth, this.panelHeight);
-        this.threadOffsets = Canvas.getThreadOffsets(this.programRibbonData);
+        this.threadOffsets = Canvas.getThreadOffsets(this.threadRibbonLength);
 
         this.programTimelineOriginX = Config.PROGRAM_TIMELINE_LEFT_PADDING;
         this.programTimelineOriginY = Config.PROGRAM_TIMELINE_TOP_PADDING;
     }
 
-    static getTimelineHeight(programRibbonData: number[]): number {
+    static getTimelineHeight(threadRibbonLength: number[]): number {
         let programTimelineHeight = 0; 
-        for (let ribbons of programRibbonData) {
+        for (let ribbons of threadRibbonLength) {
             programTimelineHeight += ribbons * Config.RIBBON_HEIGHT;
         }
 
-        if (programRibbonData.length > 0) {
-            programTimelineHeight += (programRibbonData.length - 1) * Config.THREAD_TIMELINE_GAP;
+        if (threadRibbonLength.length > 0) {
+            programTimelineHeight += (threadRibbonLength.length - 1) * Config.THREAD_TIMELINE_GAP;
         }
 
         return programTimelineHeight;
@@ -77,12 +77,12 @@ export default class Canvas {
         return canvasList;
     }
 
-    static getThreadOffsets(programRibbonData: number[]): number[] {
+    static getThreadOffsets(threadRibbonLength: number[]): number[] {
         let sum = 0; 
         let threadOffsets = new Array<number>();
-        for (let i = 0; i < programRibbonData.length; i++) {
+        for (let i = 0; i < threadRibbonLength.length; i++) {
             threadOffsets.push(sum);
-            sum += programRibbonData[i] * Config.RIBBON_HEIGHT + Config.THREAD_TIMELINE_GAP;
+            sum += threadRibbonLength[i] * Config.RIBBON_HEIGHT + Config.THREAD_TIMELINE_GAP;
         }
     
         return threadOffsets;
@@ -116,7 +116,7 @@ export default class Canvas {
 
                 thread--;
                 let pattern = Math.floor((y - this.threadOffsets[thread]) / Config.RIBBON_HEIGHT);
-                if (pattern >= this.programRibbonData[thread]) return;
+                if (pattern >= this.threadRibbonLength[thread]) return;
                 
                 let pixelOffset = panelIndex * this.programTimelineWidth + x;
                 

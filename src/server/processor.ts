@@ -215,17 +215,6 @@ const NUM_QUERIES_FOR_PATTERN = 10;
 
         return timeframePanelsRaw;
     }
-
-    /**
-     * Given a pattern file for a thread, return all the functions that is executed in that thread
-     * @param lines lines of a pattern file
-     */
-    static appendFunctions(functions: Set<string>, lines: string[]): void {
-        for (let i = 1; i < lines.length && lines[i].includes("\t"); i++) {
-            let func = lines[i].split("\t")[1];
-            functions.add(func);
-        }
-    }
 }
 
 class Filter {
@@ -470,10 +459,11 @@ class Filter {
 function main() {
     let threads = new Array<Thread>();
     let absoluteTimePrefix: string = null;
-    let functions = new Set<string>();
+    
+    let functions = fs.readFileSync(path.join(__dirname, Constants.FUNCTIONS_FILE), "utf-8").split("\n");
+    
     for (let threadConfig of config.threads) {
         let lines = fs.readFileSync(path.join(__dirname, threadConfig.filePath), "utf-8").split("\n");
-        Processor.appendFunctions(functions, lines);
         let { patterns, absTimePrefix } = Processor.getPatterns(lines);
         if (absoluteTimePrefix == null) absoluteTimePrefix = absTimePrefix;
 
@@ -496,12 +486,37 @@ function main() {
     let filter = new Filter(program);
     filter.filterThreads(5);
 
+    let thread = program.threads[0];
+    // let p1 = thread.patterns[2];
+    // let p2 = thread.patterns[4];
+
+    // let c1 = 0; 
+    // for (let i of p1.patternIntervals) {
+    //     c1 += i[1] - i[0];
+    // }
+
+    // let c2 = 0; 
+    // for (let i of p2.patternIntervals) {
+    //     c2 += i[1] - i[0];
+    // }
+
+    // console.log("spans: " + c1 + " " + c2);
+    // console.log("spans: " + p1.patternData.patternID + " " + p2.patternData.patternID);
+    // console.log("sim 3, 5", Filter.getPatternSim(thread.patterns[2], thread.patterns[4]));
+
+
+    for (let threads of program.threads) {
+        for (let pattern of threads.patterns) {
+            console.log(pattern.patternData.patternID);
+        }
+    }
+
     Processor.createQueries(program);
     program = Processor.absoluteTimeToRelativeTime(program);
     let timeframePanelsRaw = Processor.createTimeframePanelsRaw(program);
     return {  
         program: program,
-        functions: Array.from(functions),
+        functions: functions,
         timeframePanelsRaw: timeframePanelsRaw
     }
 }

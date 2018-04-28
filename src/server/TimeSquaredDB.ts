@@ -1,28 +1,55 @@
 "use strict";
 
-var MDB = require('monetdb')();
-var MDB_OPTIONS = {
-    host     : 'localhost', 
-    port     : 50000, 
-    dbname   : 'dinamite', 
-    user     : 'monetdb', 
-    password : 'monetdb'
-};
+import { Client}  from 'pg';
 
-var rawQuery = function (query) {
-    var conn = new MDB(MDB_OPTIONS);
+const PGDB_OPTIONS = {
+    user: 'pasindumuthukuda',
+    host: 'localhost',
+    database: 'dinamite',
+    password: '',
+    port: 5432,
+}
+
+function rawQuery(query: string) {
+    let conn = new Client(PGDB_OPTIONS);
     return new Promise(function (resolve, reject) {
         conn.connect();
-        conn.query(query)
-            .then(function (result) {
-                resolve(result);
-            })
-            .catch(function (err) {
+        conn.query(query, (err, result) => {
+            if (result) {
+                resolve({
+                    data: result.rows
+                }); 
+            } else {
                 reject(err);
-            });
-        conn.close();
+            }
+            conn.end()
+        });
     });
 };
+
+// var MDB = require('monetdb')();
+// var MDB_OPTIONS = {
+//     host     : 'localhost', 
+//     port     : 50000, 
+//     dbname   : 'dinamite', 
+//     user     : 'monetdb', 
+//     password : 'monetdb'
+// };
+
+// var rawQuery1 = function (query) {
+//     var conn = new MDB(MDB_OPTIONS);
+//     return new Promise(function (resolve, reject) {
+//         conn.connect();
+//         conn.query(query)
+//             .then(function (result) {
+//                 resolve(result);
+//             })
+//             .catch(function (err) {
+//                 reject(err);
+//             });
+//         conn.close();
+//     });
+// };
 
 /**
  * Private method.

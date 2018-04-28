@@ -12,8 +12,8 @@ export default class ProgramTimelineDrawer {
     initalizeRibbons() {
         let color = Config.RIBBON_LIGHT;
     
-        for (let i = 0; i < this.canvas.programRibbonData.length; i++) {
-            let ribbons = this.canvas.programRibbonData[i]
+        for (let i = 0; i < this.canvas.threadRibbonLength.length; i++) {
+            let ribbons = this.canvas.threadRibbonLength[i]
             for (let j = 0; j < ribbons; j++) {
                 color = (color == Config.RIBBON_DARK) ? Config.RIBBON_LIGHT : Config.RIBBON_DARK;
                 this.drawInterval(i, j, 0, this.canvas.totalPixelLength - 1, color)
@@ -22,8 +22,8 @@ export default class ProgramTimelineDrawer {
     }
     
     drawInterval(threadNum: number, ribbonNum: number, pixelStart: number, pixelEnd: number, color: string) {
-        if (!(0 <= threadNum && threadNum < this.canvas.programRibbonData.length)
-         || !(0 <= ribbonNum && ribbonNum < this.canvas.programRibbonData[threadNum])
+        if (!(0 <= threadNum && threadNum < this.canvas.threadRibbonLength.length)
+         || !(0 <= ribbonNum && ribbonNum < this.canvas.threadRibbonLength[threadNum])
          || pixelEnd < pixelStart) {
             throw new RangeError("threadNum and ribbonNum are out of range");
         };

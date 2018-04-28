@@ -10,7 +10,7 @@ export default class Utils {
      * 
      */
     static createQuery(absTimePrefix: string, timeStart: number, timeEnd: number, threadID: string): string {
-        return "SELECT dir, func, tid, time FROM trace "
+        return "SELECT dir, func, tid, time FROM sys.trace "
             + "WHERE " 
             + absTimePrefix + timeStart.toString() 
             + " <= time AND time <= " 

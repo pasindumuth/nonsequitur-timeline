@@ -18,15 +18,24 @@ export default class TimelineVis {
 
     program: Program;
 
-    constructor(timeframePanelsRaw: TimeframePanelRaw[], programRibbonData: number[], width: number, program: Program) {
+    constructor(timeframePanelsRaw: TimeframePanelRaw[], programRibbonToPatternID: number[][], width: number, program: Program) {
         this.timeframePanels = TimelineVis.refineTimeframePanels(timeframePanelsRaw);
 
-        this.canvas = new Canvas(programRibbonData, this.getTotalPixelLength(), width - Config.CANVAS_MARGIN);
+        let threadRibbonLength = new Array<number>();
+        for (let threadRibbonToPatternID of programRibbonToPatternID)
+            threadRibbonLength.push(threadRibbonToPatternID.length);
+
+        this.canvas = new Canvas(threadRibbonLength, this.getTotalPixelLength(), width - Config.CANVAS_MARGIN);
         this.programTimelineDrawer = new ProgramTimelineDrawer(this.canvas);
         this.timelineBarDrawer = new TimelineBarDrawer(this.canvas);
         this.sidebarDrawer = new SidebarDrawer(this.canvas);
-        this.colorPicker = new ColorPicker(programRibbonData);
 
+        let patternIDs = new Set<number>();
+        for (let threadRibbonToPatternID of programRibbonToPatternID)
+            for (let patternID of threadRibbonToPatternID)
+                patternIDs.add(patternID);
+
+        this.colorPicker = new ColorPicker(programRibbonToPatternID, patternIDs);
         this.program = program;
     }
 
@@ -123,31 +132,6 @@ export default class TimelineVis {
     drawNameSidebar(names: string[]) {
         this.sidebarDrawer.drawSidebar(names);
     }
- 
-    // setupMouseEvents(rootDiv) {
-    //     function byte2Hex (n) {
-    //         var str = n.toString(16);
-    //         return "00".substr(str.length) + str;
-    //     }
-    
-    //     function rgbToColorHexstring(r,g,b) {
-    //         return '#' + byte2Hex(r) + byte2Hex(g) + byte2Hex(b);
-    //     };
-    
-    //     $(rootDiv).on("mousemove", function (e) {
-    //         let x = e.pageX;
-    //         let y = e.pageY; 
-    
-    //         let element = document.elementFromPoint(x, y) as HTMLCanvasElement;
-    //         if (element.tagName == "CANVAS") {
-    //             let xCanvas = x - element.offsetLeft;
-    //             let yCanvas = y - element.offsetTop;
-    //             let context = element.getContext("2d");
-    //             let color = context.getImageData(xCanvas, yCanvas, 1, 1).data;
-    //             let threadHexColor = rgbToColorHexstring(color[0], color[1], color[2]);
-    //         }
-    //     });
-    // }
 
     setupTimeSquaredSampling(sampler: (interval: number[], thread: number) => void) {
         this.canvas.setupClickHandler((thread: number, pattern: number, pixelOffset: number) => {
