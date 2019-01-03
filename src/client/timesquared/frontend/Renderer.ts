@@ -1,11 +1,11 @@
 "use strict";
 
 import * as d3 from 'd3';
-import Database from './Database';
 import QueryConstructor from './QueryConstructor';
 import { MetaData, Event } from '../shared/shapes';
 
-let G_COMPRESSED_VIZ_WIDTH = 50, //px
+const
+    G_COMPRESSED_VIZ_WIDTH = 50, //px
     G_EVENT_HEIGHT = 4, //px
     G_THREAD_PADDING = 10, //px
     G_THREAD_PANEL_FONT_SIZE = 12, //px
@@ -15,7 +15,7 @@ let G_COMPRESSED_VIZ_WIDTH = 50, //px
     G_PANEL_MOUSE_HOVER_IDLE_TIME = 250,
     G_TIMEBAR_TICK_SIZE = 10, //px
     G_TIMEBAR_TIMESPAN_FACTOR = 100,
-    
+
     /**
      * TUNING PARAMETER
      * The number of viz's that get filled with events per query
@@ -330,7 +330,7 @@ class Layer {
         if (!this.panels) {
             return 0;
         }
-        return this.panels[0].startTime;
+    return this.panels[0].startTime;
     }
 
     endTime(): number {

@@ -1,8 +1,7 @@
 import fs from 'fs';
 import path from 'path';
-import stripJsonComments from 'strip-json-comments';
-import { Config, ProgramConfig, ThreadConfig } from './config'
-import { AjaxData, Program, ProgramData, Thread, ThreadData, Pattern, TimeframePanelRaw } from '../shared/shapes';
+import { Config, ThreadConfig } from './config'
+import { Program, Thread, ThreadData, Pattern, TimeframePanelRaw } from '../shared/shapes';
 import Utils from '../shared/Utils'
 import Constants from '../shared/Constants'
 
@@ -43,7 +42,7 @@ const NUM_QUERIES_FOR_PATTERN = 10;
       * intervals for a given pattern are disjoint.
       */
      
-    static getPatterns(lines: string[]): {patterns: Pattern[], absTimePrefix: string } {
+    static getPatterns(lines: string[]): { patterns: Pattern[], absTimePrefix: string } {
         let absTimePrefix = null;
 
         let i = 0;
@@ -133,9 +132,8 @@ const NUM_QUERIES_FOR_PATTERN = 10;
     }
 
     /**
-     * Selection policy is based on frequency
+     * Selection policy is based on frequency. 
      */
-
     static getTopPatterns(patterns: Pattern[], numTopPatterns: number): Pattern [] {
         patterns.sort(function (a: Pattern, b: Pattern) {
             return b.patternData.frequency - a.patternData.frequency;
@@ -269,6 +267,8 @@ class Filter {
 
         return filteredPatterns;
     }
+
+    // Test the heck out of this.
 
     /**
      * Filters the given patterns based on a graph clustering approach. Each pattern is
@@ -468,7 +468,7 @@ function main() {
         if (absoluteTimePrefix == null) absoluteTimePrefix = absTimePrefix;
 
         // The pattern intervals are ordered
-        patterns = Processor.getTopPatterns(patterns, threadConfig.numTopPatterns);
+        // patterns = Processor.getTopPatterns(patterns, threadConfig.numTopPatterns);
 
         let thread: Thread = {
             threadData: Processor.getThreadData(patterns, threadConfig),
@@ -505,9 +505,11 @@ function main() {
     // console.log("sim 3, 5", Filter.getPatternSim(thread.patterns[2], thread.patterns[4]));
 
 
+    let i = 1;
     for (let threads of program.threads) {
         for (let pattern of threads.patterns) {
-            console.log(pattern.patternData.patternID);
+            console.log(i.toString() + ": " + pattern.patternData.patternID);
+            i++;
         }
     }
 

@@ -23,3 +23,15 @@ These queries can be used in TimeSquared to see those patterns in detail.
 
 The `public/Canvas.js` object is the main drawing interface for NonSequiturTimeline. At the top are constants that control the viz, such as
 the ribbon height, spacing between threads, etc.
+
+### Loading Data Into Postgres
+
+First, install postgreSQL. The default database configurations are specified at the top of src/server/TimeSquaredDB.ts.
+
+Create a schema 'sys', and create table 'trace' with: CREATE TABLE sys.trace ( "id" INTEGER, "dir" SMALLINT, "func" VARCHAR(255), "tid" SMALLINT, "time" BIGINT, "duration" BIGINT); 
+
+We need to stream the data to copy into postgres, starting with the line with the COPY command. Use: 
+tail -n +12 trace.txt | psql dinamite -c "COPY sys.trace (id, dir, func, tid, time, duration) FROM stdin"
+
+Then, create an index to do range queries over time faster.
+CREATE INDEX trace_index ON sys.trace (time);
