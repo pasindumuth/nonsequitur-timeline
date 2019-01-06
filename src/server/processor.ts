@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { Config, ThreadConfig } from './config'
-import { Program, Thread, ThreadData, Pattern, TimeframePanelRaw } from '../shared/shapes';
+import {Program, Thread, ThreadData, Pattern, TimeframePanelRaw, PatternShape} from '../shared/shapes';
 import Utils from '../shared/Utils'
 import Constants from '../shared/Constants'
 
@@ -85,7 +85,7 @@ const NUM_QUERIES_FOR_PATTERN = 10;
             patterns.push({
                 patternData: {
                     patternID: parseInt(lines[i + 1]),
-                    patternShape: lines[i + 2],
+                    patternShape: JSON.parse(lines[i + 2]),
                     start: patternStart,
                     end: patternEnd,
                     frequency: intervals.length,
@@ -249,9 +249,7 @@ class Filter {
     static filterByPatternShapeComplexity(patterns: Pattern[]): Pattern[] {
         let filteredPatterns = new Array<Pattern>();
         for (let pattern of patterns) {
-            if (pattern.patternData.patternShape.split(",").length > 1) {
-                filteredPatterns.push(pattern);
-            }
+            filteredPatterns.push(pattern);
         }
 
         return filteredPatterns;
@@ -485,25 +483,6 @@ function main() {
 
     let filter = new Filter(program);
     filter.filterThreads(5);
-
-    let thread = program.threads[0];
-    // let p1 = thread.patterns[2];
-    // let p2 = thread.patterns[4];
-
-    // let c1 = 0; 
-    // for (let i of p1.patternIntervals) {
-    //     c1 += i[1] - i[0];
-    // }
-
-    // let c2 = 0; 
-    // for (let i of p2.patternIntervals) {
-    //     c2 += i[1] - i[0];
-    // }
-
-    // console.log("spans: " + c1 + " " + c2);
-    // console.log("spans: " + p1.patternData.patternID + " " + p2.patternData.patternID);
-    // console.log("sim 3, 5", Filter.getPatternSim(thread.patterns[2], thread.patterns[4]));
-
 
     let i = 1;
     for (let threads of program.threads) {

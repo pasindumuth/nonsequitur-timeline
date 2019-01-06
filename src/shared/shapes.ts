@@ -35,7 +35,7 @@ export class Pattern {
 export class PatternData {
     start: number;
     end: number;
-    patternShape: string;
+    patternShape: PatternShape;
     frequency: number;
     patternID: number;
 }
@@ -63,3 +63,16 @@ export class TimeframePanel {
                         / (this.pixelEnd - this.pixelStart)) + this.start;
     }
 }
+
+export class PatternShape {
+    depth: number;
+    baseFunctions: {
+        baseFunction: number;
+        count: number
+    }[];
+    patternIds: {
+        patternId: number;
+        count: number
+    }[];
+}
+
