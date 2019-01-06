@@ -5,39 +5,38 @@ export class AjaxData {
 }
 
 export class Program {
-    programData: ProgramData;
+    absoluteStartTime: string;
+    duration: number;
     threads: Thread[];
 }
 
-export class ProgramData {
-    start: number;
-    end: number;
-    absoluteTimePrefix: string;
-}
-
 export class Thread {
-    threadData: ThreadData;
+    id: string;
     patterns: Pattern[];
 }
 
-export class ThreadData {
-    start: number;
-    end: number;
-    numPatterns: number;
-    threadID: string;
-}
-
 export class Pattern {
-    patternData: PatternData;
-    patternIntervals: number[][];
+    id: number;
+    representation: PatternShape;
+    intervals: number[][];
 }
 
-export class PatternData {
-    start: number;
-    end: number;
-    patternShape: PatternShape;
-    frequency: number;
-    patternID: number;
+export class PatternShape {
+    depth: number;
+    baseFunctions: {
+        baseFunction: number;
+        count: number
+    }[];
+    patternIds: {
+        patternId: number;
+        count: number
+    }[];
+}
+
+export class Metadata {
+    absoluteStartTime: string;
+    absoluteEndTime: string;
+    duration: number;
 }
 
 export class TimeframePanelRaw {
@@ -62,17 +61,5 @@ export class TimeframePanel {
         return Math.floor((this.end - this.start) * (pixelOffset - this.pixelStart) 
                         / (this.pixelEnd - this.pixelStart)) + this.start;
     }
-}
-
-export class PatternShape {
-    depth: number;
-    baseFunctions: {
-        baseFunction: number;
-        count: number
-    }[];
-    patternIds: {
-        patternId: number;
-        count: number
-    }[];
 }
 

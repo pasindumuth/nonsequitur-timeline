@@ -1,5 +1,6 @@
 import $ from 'jquery';
 import TimelineVis from './TimelineVis';
+import Timeline from './timeline2/Timeline';
 import Config from './Config';
 import { AjaxData } from '../shared/shapes';
 import Utils from '../shared/Utils';
@@ -27,7 +28,7 @@ function render(result: AjaxData) {
     for (let thread of program.threads) {
         let threadRibbonToPatternID = new Array<number>();
         for (let pattern of thread.patterns) {
-            threadRibbonToPatternID.push(pattern.patternData.patternID);
+            threadRibbonToPatternID.push(pattern.id);
         }
         programRibbonToPatternID.push(threadRibbonToPatternID);
     }
@@ -47,7 +48,7 @@ function render(result: AjaxData) {
 
     let threadIDs = new Array<string>();
     for (let thread of program.threads) {
-        threadIDs.push(thread.threadData.threadID);
+        threadIDs.push(thread.id);
     }
     
     console.log("start canvas drawing");
@@ -58,12 +59,14 @@ function render(result: AjaxData) {
 
     timelineVis.setupTimeSquaredSampling((interval: number[], thread: number) => {
         if (interval[1] - interval[0] > Config.MAX_SAMPLE_INTERVAL_SIZE) return;
-        let tid = program.threads[thread].threadData.threadID;
-        let timeStart = interval[0] + program.programData.start;
-        let timeEnd = interval[1] + program.programData.start;
-        let query = Utils.createQuery(program.programData.absoluteTimePrefix, timeStart, timeEnd, tid);
+        let tid = program.threads[thread].id;
+        let absoluteTime = program.absoluteStartTime;
+        let absoluteTimePrefix = absoluteTime.substring(0, absoluteTime.length - 15);
+        let absoluteTimeOffset = absoluteTime.substring(absoluteTime.length - 15, absoluteTime.length);
+        let timeStart = interval[0] + parseInt(absoluteTimeOffset);
+        let timeEnd = interval[1] + parseInt(absoluteTimeOffset);
+        let query = Utils.createQuery(absoluteTimePrefix, timeStart, timeEnd, tid);
         executeQuery(query);
-
     });
 
     functionData = new FunctionData(result.functions);
@@ -71,6 +74,48 @@ function render(result: AjaxData) {
 
     console.log("all done");
 }
+//
+// function render2(result: AjaxData) {
+//     console.log("start rendering");
+//     let program = result.program;
+//
+//     let width = $(window).width() * 2;
+//     let timeline = new Timeline(program);
+//
+//     let rootDiv = $("#mainPatternRenderContainer");
+//     for (let canvas of timeline.canvas.panels) {
+//         let div = document.createElement("div");
+//         $(div).addClass("canvas-div");
+//         $(div).append(canvas);
+//         $(rootDiv).append(div);
+//     }
+//
+//     let threadIDs = new Array<string>();
+//     for (let thread of program.threads) {
+//         threadIDs.push(thread.threadData.id);
+//     }
+//
+//     console.log("start canvas drawing");
+//
+//     timeline.drawTimelineBar();
+//     timeline.drawProgramData();
+//     timeline.drawNameSidebar(threadIDs);
+//
+//     timeline.setupTimeSquaredSampling((interval: number[], thread: number) => {
+//         if (interval[1] - interval[0] > Config.MAX_SAMPLE_INTERVAL_SIZE) return;
+//         let tid = program.threads[thread].threadData.id;
+//         let timeStart = interval[0] + program.programData.start;
+//         let timeEnd = interval[1] + program.programData.start;
+//         let query = Utils.createQuery(program.programData.absoluteTimePrefix, timeStart, timeEnd, tid);
+//         executeQuery(query);
+//
+//     });
+//
+//     functionData = new FunctionData(result.functions);
+//     gRenderer = new Renderer($('#mainRenderContainer').get(0), functionData);
+//
+//     console.log("all done");
+// }
 
 /**
  * Automatically runs once all DOM manipulation is complete.

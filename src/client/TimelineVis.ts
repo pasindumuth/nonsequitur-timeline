@@ -1,4 +1,3 @@
-import $ from 'jquery';
 import Config from './Config';
 import { Program, TimeframePanelRaw, TimeframePanel } from '../shared/shapes';
 import Canvas from './Canvas';
@@ -39,7 +38,7 @@ export default class TimelineVis {
         this.program = program;
     }
 
-    static refineTimeframePanels = function (timeframePanelsRaw: TimeframePanelRaw[]): TimeframePanel[] {
+    static refineTimeframePanels(timeframePanelsRaw: TimeframePanelRaw[]): TimeframePanel[] {
         let pixelOffset = 0;
         let timeframePanels = new Array<TimeframePanel>();
     
@@ -78,7 +77,7 @@ export default class TimelineVis {
                 let panel: TimeframePanel;
 
                 let k = 0; 
-                for (let interval of pattern.patternIntervals) {
+                for (let interval of pattern.intervals) {
                     while (this.timeframePanels[k].end < interval[0]) {
                         k++;
                         if (k == this.timeframePanels.length) break;
@@ -148,7 +147,7 @@ export default class TimelineVis {
             // will for sure be a valid time, since pixelOffset will surely be on the program timeline.
             let time = this.timeframePanels[start - 1].pixelToTime(pixelOffset);
 
-            let patternIntervals = this.program.threads[thread].patterns[pattern].patternIntervals;
+            let patternIntervals = this.program.threads[thread].patterns[pattern].intervals;
             start = 0; 
             end = patternIntervals.length;
             while (start != end) {

@@ -1,5 +1,4 @@
 import Config from './Config';
-import Canvas from './Canvas';
 
 export default class ColorPicker {
     programRibbonToPatternID: number[][];

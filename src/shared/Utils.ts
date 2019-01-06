@@ -6,7 +6,7 @@ export default class Utils {
      * @param absTimePrefix absoluteTimePrefix of the trace
      * @param timeStart absoluteTimeSuffix of the start timestamps
      * @param timeEnd absoluteTimeSuffix of the end timestamps
-     * @param threadID threadID whose events we want
+     * @param threadID id whose events we want
      * 
      */
     static createQuery(absTimePrefix: string, timeStart: number, timeEnd: number, threadID: string): string {

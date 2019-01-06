@@ -8,7 +8,8 @@ export interface ProgramConfig {
     RELATIVE_TIME_NUM_DIGITS: number;
     // Sampling the timeline we divide it up into NUM_SAMPLE intervals, and take a SAMPLE_RATIO fraction of it for display.
     SAMPLING_RATIO: number;
-    NUM_SAMPLES: number; 
+    NUM_SAMPLES: number;
+    METADATA_PATH: string;
 }
 
 export interface ThreadConfig {

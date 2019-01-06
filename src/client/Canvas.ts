@@ -41,7 +41,6 @@ export default class Canvas {
                           + Config.TIMELINE_MEASURE_BAR_TOP_PADDING
                           + Config.TIMELINE_MEASURE_BAR_BOTTOM_PADDING;
 
-
         let numCanvas = Math.ceil(this.totalPixelLength / this.programTimelineWidth);
         this.panels = Canvas.getPanels(numCanvas, this.panelWidth, this.panelHeight);
         this.threadOffsets = Canvas.getThreadOffsets(this.threadRibbonLength);
