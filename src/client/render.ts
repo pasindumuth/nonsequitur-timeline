@@ -74,48 +74,23 @@ function render(result: AjaxData) {
 
     console.log("all done");
 }
-//
-// function render2(result: AjaxData) {
-//     console.log("start rendering");
-//     let program = result.program;
-//
-//     let width = $(window).width() * 2;
-//     let timeline = new Timeline(program);
-//
-//     let rootDiv = $("#mainPatternRenderContainer");
-//     for (let canvas of timeline.canvas.panels) {
-//         let div = document.createElement("div");
-//         $(div).addClass("canvas-div");
-//         $(div).append(canvas);
-//         $(rootDiv).append(div);
-//     }
-//
-//     let threadIDs = new Array<string>();
-//     for (let thread of program.threads) {
-//         threadIDs.push(thread.threadData.id);
-//     }
-//
-//     console.log("start canvas drawing");
-//
-//     timeline.drawTimelineBar();
-//     timeline.drawProgramData();
-//     timeline.drawNameSidebar(threadIDs);
-//
-//     timeline.setupTimeSquaredSampling((interval: number[], thread: number) => {
-//         if (interval[1] - interval[0] > Config.MAX_SAMPLE_INTERVAL_SIZE) return;
-//         let tid = program.threads[thread].threadData.id;
-//         let timeStart = interval[0] + program.programData.start;
-//         let timeEnd = interval[1] + program.programData.start;
-//         let query = Utils.createQuery(program.programData.absoluteTimePrefix, timeStart, timeEnd, tid);
-//         executeQuery(query);
-//
-//     });
-//
-//     functionData = new FunctionData(result.functions);
-//     gRenderer = new Renderer($('#mainRenderContainer').get(0), functionData);
-//
-//     console.log("all done");
-// }
+
+function render2(result: AjaxData) {
+    console.log("start rendering");
+    let program = result.program;
+    let width = $(window).width();
+    let timeline = new Timeline(program, width);
+
+    let rootDiv = $("#mainPatternRenderContainer");
+    let div = document.createElement("div");
+    $(div).addClass("canvas-div");
+    $(div).append(timeline.canvas);
+    $(rootDiv).append(div);
+
+    timeline.render();
+
+    console.log("all done");
+}
 
 /**
  * Automatically runs once all DOM manipulation is complete.
@@ -134,7 +109,7 @@ function executeQuery(query: string) {
 }
 
 $(document).ready( function () {
-    $.ajax({url: "/data", success: render});
+    $.ajax({url: "/data", success: render2});
     
     /**
      * requestNextQuery

@@ -47,78 +47,108 @@ class Filter {
         this.program = program;
     }
 
-    filterThreads(numPatternsToKeep: number) {
-        for (let thread = 0; thread < this.program.threads.length; thread++) {
-            this.filterThread(thread, numPatternsToKeep);
+    filterThreads() {
+        this.filterThreadsByFrequency();
+        this.filterToTop4PatternsPerDepthBySpan()
+    }
+
+    filterThreadsByFrequency() {
+        for (let i = 0; i < this.program.threads.length; i++) {
+            let filteredPatterns = new Array<Pattern>();
+            for (let pattern of this.program.threads[i].patterns) {
+                if (pattern.intervals.length >= Constants.MIN_FREQUENCY) {
+                    filteredPatterns.push(pattern);
+                }
+            }
+            this.program.threads[i].patterns = filteredPatterns;
         }
     }
 
     /**
-     * Some patterns from the pattern finding algorithm are not as important to show as others. 
-     * Thus, we would like to select a subset of them for the purpose of visualization.
-     * @param thread thread to filter the patterns of
-     * @param numPatternsToKeep number of patterns to keep
+     * Since all instances of all patterns for a given depth occur on disjoint time intervals,
+     * ranking by span is a sensible solution, since that indicated prominence.
      */
-    filterThread(thread: number, numPatternsToKeep: number) {
-        let patterns = this.program.threads[thread].patterns;
-        console.log(patterns.length);
-        patterns = Filter.filterByPatternFrequency(patterns, Constants.MIN_FREQUENCY);
-        console.log(patterns.length);
-        // patterns = Filter.filterBySim(patterns, numPatternsToKeep);
-        patterns = Filter.filterByPatternShapeComplexity(patterns);
-        console.log(patterns.length);
-        this.program.threads[thread].patterns = patterns;
-    }
-
-    static filterByPatternShapeComplexity(patterns: Pattern[]): Pattern[] {
-        let filteredPatterns = new Array<Pattern>();
-        for (let pattern of patterns) {
-            filteredPatterns.push(pattern);
-        }
-
-        return filteredPatterns;
-    }
-
-    static filterByPatternFrequency(patterns: Pattern[], threshold: number) {
-        let filteredPatterns = new Array<Pattern>();
-        for (let pattern of patterns) {
-            if (pattern.intervals.length >= threshold) {
-                filteredPatterns.push(pattern);
+    filterToTop4PatternsPerDepthBySpan() {
+        let maxDepth = 0;
+        let patternIdToTotalSpan = new Map<number, number>();
+        let patternIdToDepth = new Map<number, number>();
+        for (let thread of this.program.threads) {
+            for (let pattern of thread.patterns) {
+                let id = pattern.id;
+                let depth = pattern.representation.depth;
+                maxDepth = Math.max(maxDepth, depth);
+                let curSpan = patternIdToTotalSpan.has(id) ? patternIdToTotalSpan.get(id) : 0;
+                patternIdToTotalSpan.set(id, curSpan + Filter.span(pattern.intervals));
+                if (!patternIdToDepth.has(id)) {
+                    patternIdToDepth.set(id, depth);
+                }
             }
         }
 
-        return filteredPatterns;
+        let patternsByDepth = new Array<number[]>();
+        for (let depth = 0; depth <= maxDepth; depth++) {
+            patternsByDepth.push([]);
+        }
+
+        for (let id of patternIdToDepth.keys()) {
+            patternsByDepth[patternIdToDepth.get(id)].push(id);
+        }
+
+        let patternIdsToInclude = new Set<number>();
+        for (let depth = 0; depth < maxDepth; depth++) {
+            patternsByDepth[depth].sort((id1, id2) =>
+                patternIdToTotalSpan.get(id2) - patternIdToTotalSpan.get(id1)
+            );
+            for (let id of patternsByDepth[depth].slice(0, Constants.PATTERNS_PER_DEPTH)) {
+                patternIdsToInclude.add(id);
+            }
+        }
+
+        for (let thread of this.program.threads) {
+            let filteredPatterns = new Array<Pattern>();
+            for (let pattern of thread.patterns) {
+                if (patternIdsToInclude.has(pattern.id)) {
+                    filteredPatterns.push(pattern);
+                }
+            }
+            thread.patterns = filteredPatterns;
+        }
+    }
+
+    /** The sum of the lengths of the intervals. */
+    static span(intervals: number[][]): number {
+        let span = 0;
+        for (let interval of intervals) {
+            span += interval[1] - interval[0];
+        }
+        return span;
     }
 }
 
 
 function main() : AjaxData {
     let threads = new Array<Thread>();
-    let functions = fs.readFileSync(path.join(__dirname, Constants.FUNCTIONS_FILE), "utf-8").split("\n");
-    
     for (let threadConfig of config.threads) {
         let threadFile = fs.readFileSync(path.join(__dirname, threadConfig.filePath), "utf-8");
         let patterns : Pattern[] = JSON.parse(threadFile);
-
         let thread: Thread = {
             id: threadConfig.threadID,
             patterns: patterns
-        }
+        };
 
         threads.push(thread);
     }
 
     let metadataFile = fs.readFileSync(path.join(__dirname, config.programConfig.METADATA_PATH), "utf-8");
     let metadata : Metadata = JSON.parse(metadataFile);
-
     let program: Program = {
         absoluteStartTime: metadata.absoluteStartTime,
         duration: metadata.duration,
         threads: threads
-    }
+    };
 
     let filter = new Filter(program);
-    filter.filterThreads(5);
+    filter.filterThreads();
 
     let i = 1;
     for (let threads of program.threads) {
@@ -128,6 +158,8 @@ function main() : AjaxData {
         }
     }
 
+    let functionsFile = fs.readFileSync(path.join(__dirname, Constants.FUNCTIONS_FILE), "utf-8");
+    let functions : string[] = JSON.parse(functionsFile);
     let timeframePanelsRaw = Processor.createTimeframePanelsRaw(program);
     return {
         program: program,

@@ -3,36 +3,38 @@ export default class Config {
     /**
      * Canvas parameters
      */
-    static RIBBON_HEIGHT: number = 6;
-    static THREAD_TIMELINE_GAP: number = 20;
-    static PROGRAM_TIMELINE_TOP_PADDING: number = 15;
-    static PROGRAM_TIMELINE_BOTTOM_PADDING: number = 10;
-    static PROGRAM_TIMELINE_LEFT_PADDING: number = 100;
-    static PROGRAM_TIMELINE_RIGHT_PADDING: number = 55;
-    static CANVAS_MARGIN: number = 50;
+    static RIBBON_HEIGHT = 6;
+    static THREAD_TIMELINE_GAP = 20;
+    static PROGRAM_TIMELINE_TOP_PADDING = 15;
+    static PROGRAM_TIMELINE_BOTTOM_PADDING = 10;
+    static PROGRAM_TIMELINE_LEFT_PADDING = 100;
+    static PROGRAM_TIMELINE_RIGHT_PADDING = 55;
+    static CANVAS_MARGIN = 50;
 
-    static TIMELINE_MEASURE_BAR_HEIGHT: number = 25;
-    static TIMELINE_MEASURE_BAR_LEFT_OVERFLOW: number = 40;
-    static TIMELINE_MEASURE_BAR_TOP_PADDING: number = 10;
-    static TIMELINE_MEASURE_BAR_BOTTOM_PADDING: number = 10;
-    static TIMELINE_MEASURE_BAR_LINE_HEIGHT: number = 15;
-    static TIMELINE_MEASURE_BAR_COLOR: string = "#eaeaea";
+    static TIMELINE_MEASURE_BAR_HEIGHT = 25;
+    static TIMELINE_MEASURE_BAR_LEFT_OVERFLOW = 40;
+    static TIMELINE_MEASURE_BAR_TOP_PADDING = 10;
+    static TIMELINE_MEASURE_BAR_BOTTOM_PADDING = 10;
+    static TIMELINE_MEASURE_BAR_LINE_HEIGHT = 15;
+    static TIMELINE_MEASURE_BAR_COLOR = "#eaeaea";
         
-    static TARGET_NOTCH_LENGTH: number = 500;
-    static TIMELINE_MEASURE_BAR_NOTCH_WIDTH: number = 1;
-    static TIMELINE_MEASURE_BAR_NOTCH_HEIGHT: number = Config.TIMELINE_MEASURE_BAR_LINE_HEIGHT;
-    static NOTCH_COLOR: string = "#888888";
-    static TIMELINE_MEASURE_BAR_STRING_FONT: string = "Arial";
-    static TIMELINE_MEASURE_BAR_STRING_FONT_SIZE: number = 10;
-    static TIMELINE_MEASURE_BAR_STRING_FONT_COLOR: string = "#000000";
+    static TARGET_NOTCH_LENGTH = 500;
+    static TIMELINE_MEASURE_BAR_NOTCH_WIDTH = 1;
+    static TIMELINE_MEASURE_BAR_NOTCH_HEIGHT = Config.TIMELINE_MEASURE_BAR_LINE_HEIGHT;
+    static NOTCH_COLOR = "#888888";
+    static TIMELINE_MEASURE_BAR_STRING_FONT = "Arial";
+    static TIMELINE_MEASURE_BAR_STRING_FONT_SIZE = 10;
+    static TIMELINE_MEASURE_BAR_STRING_FONT_COLOR = "#000000";
 
-    static NAME_SIDE_BAR_LEFT_OFFSET: number = Config.TIMELINE_MEASURE_BAR_LEFT_OVERFLOW;
-    static NAME_FONT: string = "Arial";
-    static NAME_FONT_SIZE: number = 15;
-    static NAME_FONT_COLOR: string = "#000000";
+    static NAME_SIDE_BAR_LEFT_OFFSET = Config.TIMELINE_MEASURE_BAR_LEFT_OVERFLOW;
+    static NAME_FONT = "Arial";
+    static NAME_FONT_SIZE = 15;
+    static NAME_FONT_COLOR = "#000000";
 
     static RIBBON_LIGHT = "#eaeaea";
     static RIBBON_DARK = "#f4f4f4";
+
+
 
     /**
      * Other
