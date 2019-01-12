@@ -49,7 +49,7 @@ class Filter {
 
     filterThreads() {
         this.filterThreadsByFrequency();
-        this.filterToTop4PatternsPerDepthBySpan()
+        this.filterToTop4PatternsPerDepthPerThreadBySpan();
     }
 
     filterThreadsByFrequency() {
@@ -64,24 +64,41 @@ class Filter {
         }
     }
 
+    filterToTop4PatternsPerDepthPerThreadBySpan() {
+        for (let thread of this.program.threads) {
+            this.filterToTop4PatternsPerDepthBySpan(thread);
+        }
+
+        let max = 0;
+        let maxThread = "";
+        for (let thread of this.program.threads) {
+            for (let pattern of thread.patterns) {
+                for (let interval of pattern.intervals) {
+                    if (interval[1] > max) {
+                        max = interval[1];
+                        maxThread = thread.id;
+                    }
+                }
+            }
+        }
+    }
+
     /**
      * Since all instances of all patterns for a given depth occur on disjoint time intervals,
      * ranking by span is a sensible solution, since that indicated prominence.
      */
-    filterToTop4PatternsPerDepthBySpan() {
+    filterToTop4PatternsPerDepthBySpan(thread: Thread) {
         let maxDepth = 0;
         let patternIdToTotalSpan = new Map<number, number>();
         let patternIdToDepth = new Map<number, number>();
-        for (let thread of this.program.threads) {
-            for (let pattern of thread.patterns) {
-                let id = pattern.id;
-                let depth = pattern.representation.depth;
-                maxDepth = Math.max(maxDepth, depth);
-                let curSpan = patternIdToTotalSpan.has(id) ? patternIdToTotalSpan.get(id) : 0;
-                patternIdToTotalSpan.set(id, curSpan + Filter.span(pattern.intervals));
-                if (!patternIdToDepth.has(id)) {
-                    patternIdToDepth.set(id, depth);
-                }
+        for (let pattern of thread.patterns) {
+            let id = pattern.id;
+            let depth = pattern.representation.depth;
+            maxDepth = Math.max(maxDepth, depth);
+            let curSpan = patternIdToTotalSpan.has(id) ? patternIdToTotalSpan.get(id) : 0;
+            patternIdToTotalSpan.set(id, curSpan + Filter.span(pattern.intervals));
+            if (!patternIdToDepth.has(id)) {
+                patternIdToDepth.set(id, depth);
             }
         }
 
@@ -95,7 +112,7 @@ class Filter {
         }
 
         let patternIdsToInclude = new Set<number>();
-        for (let depth = 0; depth < maxDepth; depth++) {
+        for (let depth = 0; depth <= maxDepth; depth++) {
             patternsByDepth[depth].sort((id1, id2) =>
                 patternIdToTotalSpan.get(id2) - patternIdToTotalSpan.get(id1)
             );
@@ -104,15 +121,13 @@ class Filter {
             }
         }
 
-        for (let thread of this.program.threads) {
-            let filteredPatterns = new Array<Pattern>();
-            for (let pattern of thread.patterns) {
-                if (patternIdsToInclude.has(pattern.id)) {
-                    filteredPatterns.push(pattern);
-                }
+        let filteredPatterns = new Array<Pattern>();
+        for (let pattern of thread.patterns) {
+            if (patternIdsToInclude.has(pattern.id)) {
+                filteredPatterns.push(pattern);
             }
-            thread.patterns = filteredPatterns;
         }
+        thread.patterns = filteredPatterns;
     }
 
     /** The sum of the lengths of the intervals. */

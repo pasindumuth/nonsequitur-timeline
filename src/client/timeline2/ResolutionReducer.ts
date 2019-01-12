@@ -62,7 +62,7 @@ export default class ResolutionReducer {
             for (let i = 0; i < this.width; i++) {
                 // calculate the span in the current partition.
                 let partitionStartTime = totalTimePerPartition * i;
-                let partitionEndTime = partitionStartTime + partitionStartTime;
+                let partitionEndTime = partitionStartTime + totalTimePerPartition;
                 let span = 0;
 
                 // move the current interval until the end is passed the current partition, adding the lengths
@@ -83,21 +83,37 @@ export default class ResolutionReducer {
             return result;
         }
 
-        // The pattern we chose for each partition will be the one with the largest span there.
         let offsets = new Array<number[]>(); // the pixel offsets for each pattern
         for (let i = 0; i < patterns.length; i++) {
             offsets.push([]);
         }
+
+        // To chose a pattern, we create a distribution (including lack of pattern), scale by some
+        // upscale function, and randomly sample.
+        let numberCycle: Cycle0To1 = new Cycle0To1();
         for (let i = 0; i < this.width; i++) {
-            let maxPatternIndex = 0;
-            let maxSpan = 0;
+            let originalDistribution = new Array<number>();
+            let nonEmptySpanOfPartition = 0;
             for (let j = 0; j < patterns.length; j++) {
-                if (spanPerPartitionPerPattern[j][i] > maxSpan) {
-                    maxPatternIndex = j;
-                    maxSpan = spanPerPartitionPerPattern[j][i];
-                }
+                originalDistribution.push(spanPerPartitionPerPattern[j][i] / totalTimePerPartition);
+                nonEmptySpanOfPartition += spanPerPartitionPerPattern[j][i];
             }
-            offsets[maxPatternIndex].push(i);
+            originalDistribution.push((totalTimePerPartition - nonEmptySpanOfPartition) / totalTimePerPartition);
+
+            // Distribution where values are square rooted and normalized.
+            let squared: number[] = originalDistribution.map(v => Math.pow(v, 1/4));
+            let normal: number = squared.reduce((a, b) => a + b, 0);
+            let normalizedSquared: number[] = squared.map(v => v / normal);
+
+            let next = numberCycle.next();
+            let j = 0;
+            for (; j < normalizedSquared.length - 1 && normalizedSquared[j] <= next; j++) {
+                next -= normalizedSquared[j];
+            }
+            if (j < patterns.length) {
+                // We hit a pattern
+                offsets[j].push(i);
+            }
         }
 
         for (let i = 0; i < patterns.length; i++) {
@@ -111,15 +127,19 @@ export default class ResolutionReducer {
     }
 }
 
+class Cycle0To1 {
+    random = 0;
+
+    // Returns a uniformly distributed number between 1 - 100. This isn't random
+    // because it's a cycle, but the generated numbers are evenly spaced out.
+    next(): number {
+        this.random = (this.random + 31) % 100;
+        return this.random / 100;
+    }
+}
+
 export class LowResolutionPattern {
     id: number;
     representation: PatternShape;
     pixelOffsets: number[];
-}
-
-export class ProcessedPattern {
-    threadId: string;
-    depth: number;
-    patternId: number;
-    offsets: number[];
 }
