@@ -2,12 +2,12 @@ import $ from 'jquery';
 import TimelineVis from './TimelineVis';
 import Timeline from './timeline2/Timeline';
 import Config from './Config';
-import { AjaxData } from '../shared/shapes';
-import Utils from '../shared/Utils';
+import {AjaxData} from '../shared/shapes';
 
-import { FunctionData, Renderer } from './timesquared/frontend/Renderer';
+import {FunctionData, Renderer} from './timesquared/frontend/Renderer';
 import Database from './timesquared/frontend/Database';
 import TransferrableEventObj from './timesquared/shared/TransferrableEventObj';
+import {createQuery} from "../shared/Utils";
 
 
 let dataProcessorWebWorker = new Worker("./js/backend/DataProcessorWebWorker.js");
@@ -65,7 +65,7 @@ function render(result: AjaxData) {
         let absoluteTimeOffset = absoluteTime.substring(absoluteTime.length - 15, absoluteTime.length);
         let timeStart = interval[0] + parseInt(absoluteTimeOffset);
         let timeEnd = interval[1] + parseInt(absoluteTimeOffset);
-        let query = Utils.createQuery(absoluteTimePrefix, timeStart, timeEnd, tid);
+        let query = createQuery(absoluteTimePrefix, timeStart, timeEnd, tid);
         executeQuery(query);
     });
 
@@ -87,7 +87,22 @@ function render2(result: AjaxData) {
     $(div).append(timeline.canvas);
     $(rootDiv).append(div);
 
+    timeline.setupHoverBehaviour();
     timeline.render();
+    timeline.setupTimeSquaredSampling((interval: number[], threadId: string) => {
+        console.log(interval);
+        console.log(program.absoluteStartTime)
+        let absoluteTime = program.absoluteStartTime;
+        let absoluteTimePrefix = absoluteTime.substring(0, absoluteTime.length - 15);
+        let absoluteTimeOffset = absoluteTime.substring(absoluteTime.length - 15, absoluteTime.length);
+        let timeStart = interval[0] + parseInt(absoluteTimeOffset);
+        let timeEnd = interval[1] + parseInt(absoluteTimeOffset);
+        let query = createQuery(absoluteTimePrefix, timeStart, timeEnd, threadId);
+        executeQuery(query);
+    });
+
+    functionData = new FunctionData(result.functions);
+    gRenderer = new Renderer($('#mainRenderContainer').get(0), functionData);
 
     console.log("all done");
 }

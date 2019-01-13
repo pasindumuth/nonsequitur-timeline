@@ -5,19 +5,25 @@ export default class ResolutionReducer {
     program: Program;
     width: number;
 
-    /** The mined data, and the width of the (high resolution) canvas (about 2000px). */
-    constructor(program: Program, width: number) {
-        this.program = program;
-        this.width = width;
-    }
+    // COMPUTE VALUES
+    reducedResolutionProgram = new Map<string, LowResolutionPattern[][]>();
+
+    // first index in the value is depth, second is horizontal offset, and the third is the interval
+    sampleIntervalPerOffsetPerDepthPerThread = new Map<string, number[][][]>();
+    patternPerOffsetPerDepthPerThread = new Map<string, Pattern[][]>();
+
 
     /**
+     * The mined data, and the width of the (high resolution) canvas (about 2000px).
      * The pattern intervals are in the space of nanoseconds over the course of 60 seconds, which is
      * far to granular to display across the screen on an HTML Canvas, which has a width of about 2000 pixels.
      * This algorithm partitions the time space into as many pixels there are in the width, and intelligently
      * chooses which pattern to show per partition, in an attempt to convey what is happening in general.
      */
-    intervalToPixelTransform(): Map<string, LowResolutionPattern[][]> {
+    constructor(program: Program, width: number) {
+        this.program = program;
+        this.width = width;
+
         let patternsPerDepthPerThread = new Map<string, Pattern[][]>();
         for (let thread of this.program.threads) {
             let maxDepth = 0;
@@ -34,24 +40,40 @@ export default class ResolutionReducer {
             patternsPerDepthPerThread.set(thread.id, patternsByDepth);
         }
 
-        let reducedResolutedProgram = new Map<string, LowResolutionPattern[][]>();
         for (let thread of this.program.threads) {
             let reducedResolutionThread = new Array<LowResolutionPattern[]>();
+            let sampleIntervalPerOffsetPerDepth = new Array<number[][]>();
+            let patternPerOffsetPerThread = new Array<Pattern[]>();
             let patternsByDepth = patternsPerDepthPerThread.get(thread.id);
             for (let depth = 0; depth < patternsByDepth.length; depth++) {
-                reducedResolutionThread.push(this.computeOffsets(patternsByDepth[depth]));
+                let result = this.computeOffsets(patternsByDepth[depth]);
+                reducedResolutionThread.push(result.reducedResolutionPatterns);
+                sampleIntervalPerOffsetPerDepth.push(result.sampleIntervalPerOffset);
+                patternPerOffsetPerThread.push(result.patternPerOffset);
             }
-            reducedResolutedProgram.set(thread.id, reducedResolutionThread)
+            this.reducedResolutionProgram.set(thread.id, reducedResolutionThread)
+            this.sampleIntervalPerOffsetPerDepthPerThread.set(thread.id, sampleIntervalPerOffsetPerDepth);
+            this.patternPerOffsetPerDepthPerThread.set(thread.id, patternPerOffsetPerThread);
         }
-        return reducedResolutedProgram;
     }
 
     /**
      *  We have a set of patterns for a given depth in a given thread. For every time partition,
      *  we simply choose the pattern that has the largest span in the partition.
      */
-    computeOffsets(patterns: Pattern[]) : LowResolutionPattern[] {
-        let result = new Array<LowResolutionPattern>();
+    computeOffsets(patterns: Pattern[]) : {
+        reducedResolutionPatterns: LowResolutionPattern[],
+        sampleIntervalPerOffset: number[][],
+        patternPerOffset: Pattern[]
+    } {
+        let reducedResolutionPatterns = new Array<LowResolutionPattern>();
+        let sampleIntervalPerOffset = new Array<number[]>();
+        let patternPerOffset = new Array<Pattern>();
+        let result = {
+            reducedResolutionPatterns: reducedResolutionPatterns,
+            sampleIntervalPerOffset: sampleIntervalPerOffset,
+            patternPerOffset: patternPerOffset
+        };
         // for each pattern, we calculate and store its span for each partition.
         let spanPerPartitionPerPattern = new Array<number[]>();
         let totalTimePerPartition = Math.floor(this.program.duration / this.width); // time is always an integer
@@ -113,17 +135,36 @@ export default class ResolutionReducer {
             if (j < patterns.length) {
                 // We hit a pattern
                 offsets[j].push(i);
+                sampleIntervalPerOffset[i] = this.findSampleInterval(patterns[j], totalTimePerPartition * (i + 1));
+                patternPerOffset[i] = patterns[j];
             }
         }
 
         for (let i = 0; i < patterns.length; i++) {
-            result.push({
+            reducedResolutionPatterns.push({
                 id: patterns[i].id,
                 representation: patterns[i].representation,
                 pixelOffsets: offsets[i]
             });
         }
         return result;
+    }
+
+    /** Finds the latest interval that started strictly before the provided time. */
+    findSampleInterval(pattern: Pattern, time: number): number[] {
+        let intervals = pattern.intervals;
+        // perform binary search
+        let start = 0;
+        let end = intervals.length;
+        while (start < end) {
+            let middle = Math.floor((start + end) / 2);
+            if (intervals[middle][0] < time) {
+                start = middle + 1;
+            } else {
+                end = middle;
+            }
+        }
+        return intervals[start];
     }
 }
 

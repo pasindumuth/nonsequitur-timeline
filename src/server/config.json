@@ -9,6 +9,11 @@
     
     "threads": [
         {
+            "threadID": "1",
+            "numTopPatterns" : 50,
+            "filePath": "../data/thread.1.patterns"
+        },
+        {
             "threadID": "7",
             "numTopPatterns" : 50,
             "filePath": "../data/thread.7.patterns"
