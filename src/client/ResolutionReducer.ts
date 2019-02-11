@@ -1,4 +1,4 @@
-import {Pattern, PatternShape, Program} from "../../shared/shapes";
+import {Pattern, PatternShape, Program} from "../shared/shapes";
 
 export default class ResolutionReducer {
 

@@ -1,24 +1,13 @@
-import Config from './Config';
+import Constants from "./Constants";
 
 export default class ColorPicker {
-    programRibbonToPatternID: number[][];
-    patternIDToColor: Map<number, string>;
+    patternIdToColor: Map<number, string> = new Map<number, string>();
 
-    constructor(programRibbonToPatternID: number[][], patternIDs: Set<number>) {
-        this.patternIDToColor = new Map<number, string>();
-        this.programRibbonToPatternID = programRibbonToPatternID;
-        this.setupThreadColors(patternIDs);
-    }
-
-    setupThreadColors(patternIDs: Set<number>) {
+    constructor(patternIds: Set<number>) {
         let index = 0;
-        for (let patternID of patternIDs) {
-            this.patternIDToColor.set(patternID, Config.ALL_COLORS[index]);
+        for (let patternId of patternIds) {
+            this.patternIdToColor.set(patternId, Constants.ALL_COLORS[index]);
             index++;
         }
-    }
-
-    getColor(threadNum: number, ribbonNum: number): string {
-        return this.patternIDToColor.get(this.programRibbonToPatternID[threadNum][ribbonNum]);
     }
 }

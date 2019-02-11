@@ -1,7 +1,7 @@
-import { Program } from '../../shared/shapes';
+import { Program } from '../shared/shapes';
 import ColorPicker from './ColorPicker';
 import ResolutionReducer from "./ResolutionReducer";
-import Constants2 from "./Constants2";
+import Constants from "./Constants";
 import $ from "jquery";
 
 export default class Timeline {
@@ -29,7 +29,7 @@ export default class Timeline {
     constructor(program: Program, windowWidth: number) {
         this.program = program;
         this.canvasWidth = windowWidth * 2;
-        this.timelineWidth = this.canvasWidth - (Constants2.TIMELINE_LEFT_PADDING + Constants2.TIMELINE_RIGHT_PADDING);
+        this.timelineWidth = this.canvasWidth - (Constants.TIMELINE_LEFT_PADDING + Constants.TIMELINE_RIGHT_PADDING);
 
         this.canvas = document.createElement("canvas");
         this.canvas.className = "timeline";
@@ -46,13 +46,13 @@ export default class Timeline {
 
         this.processor = new ResolutionReducer(program, this.timelineWidth);
         for (let threadId of this.processor.reducedResolutionProgram.keys()) {
-            this.threadHeightMap.set(threadId, this.processor.reducedResolutionProgram.get(threadId).length * Constants2.TIMELINE_RIBBON_HEIGHT);
+            this.threadHeightMap.set(threadId, this.processor.reducedResolutionProgram.get(threadId).length * Constants.TIMELINE_RIBBON_HEIGHT);
             console.log(this.processor.reducedResolutionProgram.get(threadId).length);
         }
 
         let totalHeight = 0;
         for (let thread of this.program.threads) {
-            totalHeight += Constants2.TIMELINE_TOP_PADDING;
+            totalHeight += Constants.TIMELINE_TOP_PADDING;
             this.threadYOffsets.set(thread.id, totalHeight);
             totalHeight += this.threadHeightMap.get(thread.id);
         }
@@ -74,8 +74,8 @@ export default class Timeline {
         $(this.infoBox).css({
             "visibility": "hidden",
             "z-index" : 5,
-            "width": Constants2.INFO_BOX_WIDTH,
-            "height": Constants2.INFO_BOX_HEIGHT,
+            "width": Constants.INFO_BOX_WIDTH,
+            "height": Constants.INFO_BOX_HEIGHT,
         });
 
         let rootDiv = $("#mainPatternRenderContainer");
@@ -84,19 +84,19 @@ export default class Timeline {
 
     render() {
         let context = this.canvas.getContext("2d");
-        context.translate(Constants2.TIMELINE_LEFT_PADDING, 0);
+        context.translate(Constants.TIMELINE_LEFT_PADDING, 0);
         for (let thread of this.program.threads) {
-            context.translate(0, Constants2.TIMELINE_TOP_PADDING);
+            context.translate(0, Constants.TIMELINE_TOP_PADDING);
             let patternsForThread = this.processor.reducedResolutionProgram.get(thread.id);
             for (let depth = 0; depth < patternsForThread.length; depth++) {
                 let patternsAtDepth = patternsForThread[depth];
-                let y = Constants2.TIMELINE_RIBBON_HEIGHT * depth;
+                let y = Constants.TIMELINE_RIBBON_HEIGHT * depth;
                 for (let pattern of patternsAtDepth) {
                     context.strokeStyle = this.colorPicker.patternIdToColor.get(pattern.id);
                     for (let x of pattern.pixelOffsets) {
                         context.beginPath();
                         context.moveTo(x, y);
-                        context.lineTo(x, y + Constants2.TIMELINE_RIBBON_HEIGHT);
+                        context.lineTo(x, y + Constants.TIMELINE_RIBBON_HEIGHT);
                         context.stroke();
                     }
                 }
@@ -110,17 +110,17 @@ export default class Timeline {
             let canvasXCoordinate = e.offsetX * 2;
             let canvasYCoordinate = e.offsetY * 2;
             let threadId = this.findThreadForHeight(canvasYCoordinate);
-            let timelineOffsetX = canvasXCoordinate - Constants2.TIMELINE_LEFT_PADDING;
+            let timelineOffsetX = canvasXCoordinate - Constants.TIMELINE_LEFT_PADDING;
             let timelineOffsetY = canvasYCoordinate - this.threadYOffsets.get(threadId);
 
             // Guarentee that the Canvas X and Y Coordinates are in the space of a thread's timeline.
             if (0 <= timelineOffsetY && timelineOffsetY < this.threadHeightMap.get(threadId)
              && 0 <= timelineOffsetX && timelineOffsetX < this.timelineWidth) {
-                let depth = Math.floor(timelineOffsetY / Constants2.TIMELINE_RIBBON_HEIGHT);
+                let depth = Math.floor(timelineOffsetY / Constants.TIMELINE_RIBBON_HEIGHT);
                 let pattern = this.processor.patternPerOffsetPerDepthPerThread.get(threadId)[depth][timelineOffsetX];
                 if (pattern) {
                     // An interval is defined for this point on the canvas
-                    $(this.text).text(pattern.id);
+                    $(this.text).text(pattern.id.toString() + "\n" + JSON.stringify(pattern.representation));
                     $(this.infoBox).css({
                         "visibility": "visible",
                         "border-width": 5,
@@ -158,13 +158,13 @@ export default class Timeline {
             let canvasXCoordinate = e.offsetX * 2;
             let canvasYCoordinate = e.offsetY * 2;
             let threadId = this.findThreadForHeight(canvasYCoordinate);
-            let timelineOffsetX = canvasXCoordinate - Constants2.TIMELINE_LEFT_PADDING;
+            let timelineOffsetX = canvasXCoordinate - Constants.TIMELINE_LEFT_PADDING;
             let timelineOffsetY = canvasYCoordinate - this.threadYOffsets.get(threadId);
 
             // Guarentee that the Canvas X and Y Coordinates are in the space of a thread's timeline.
             if (0 <= timelineOffsetY && timelineOffsetY < this.threadHeightMap.get(threadId)
              && 0 <= timelineOffsetX && timelineOffsetX < this.timelineWidth) {
-                let depth = Math.floor(timelineOffsetY / Constants2.TIMELINE_RIBBON_HEIGHT);
+                let depth = Math.floor(timelineOffsetY / Constants.TIMELINE_RIBBON_HEIGHT);
                 let sampleInterval = this.processor.sampleIntervalPerOffsetPerDepthPerThread.get(threadId)[depth][timelineOffsetX];
                 if (sampleInterval) {
                     sampler(sampleInterval, threadId)

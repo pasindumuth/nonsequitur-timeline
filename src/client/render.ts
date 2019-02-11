@@ -1,7 +1,5 @@
 import $ from 'jquery';
-import TimelineVis from './TimelineVis';
-import Timeline from './timeline2/Timeline';
-import Config from './Config';
+import Timeline from './Timeline';
 import {AjaxData} from '../shared/shapes';
 
 import {FunctionData, Renderer} from './timesquared/frontend/Renderer';
@@ -20,62 +18,6 @@ let gMetadata = null,
 
 
 function render(result: AjaxData) {
-    console.log("start rendering");
-    let timeframePanelsRaw = result.timeframePanelsRaw;
-    let program = result.program;
-
-    let programRibbonToPatternID = new Array<number[]>();
-    for (let thread of program.threads) {
-        let threadRibbonToPatternID = new Array<number>();
-        for (let pattern of thread.patterns) {
-            threadRibbonToPatternID.push(pattern.id);
-        }
-        programRibbonToPatternID.push(threadRibbonToPatternID);
-    }
-
-    console.log(programRibbonToPatternID);
-
-    let width = $(window).width();
-    let timelineVis = new TimelineVis(timeframePanelsRaw, programRibbonToPatternID, width, program);
-
-    let rootDiv = $("#mainPatternRenderContainer");
-    for (let canvas of timelineVis.canvas.panels) {
-        let div = document.createElement("div");
-        $(div).addClass("canvas-div");
-        $(div).append(canvas);
-        $(rootDiv).append(div);
-    }
-
-    let threadIDs = new Array<string>();
-    for (let thread of program.threads) {
-        threadIDs.push(thread.id);
-    }
-    
-    console.log("start canvas drawing");
-
-    timelineVis.drawTimelineBar();
-    timelineVis.drawProgramData();
-    timelineVis.drawNameSidebar(threadIDs);
-
-    timelineVis.setupTimeSquaredSampling((interval: number[], thread: number) => {
-        if (interval[1] - interval[0] > Config.MAX_SAMPLE_INTERVAL_SIZE) return;
-        let tid = program.threads[thread].id;
-        let absoluteTime = program.absoluteStartTime;
-        let absoluteTimePrefix = absoluteTime.substring(0, absoluteTime.length - 15);
-        let absoluteTimeOffset = absoluteTime.substring(absoluteTime.length - 15, absoluteTime.length);
-        let timeStart = interval[0] + parseInt(absoluteTimeOffset);
-        let timeEnd = interval[1] + parseInt(absoluteTimeOffset);
-        let query = createQuery(absoluteTimePrefix, timeStart, timeEnd, tid);
-        executeQuery(query);
-    });
-
-    functionData = new FunctionData(result.functions);
-    gRenderer = new Renderer($('#mainRenderContainer').get(0), functionData);
-
-    console.log("all done");
-}
-
-function render2(result: AjaxData) {
     console.log("start rendering");
     let program = result.program;
     let width = $(window).width();
@@ -112,7 +54,9 @@ function render2(result: AjaxData) {
  */
 
 function executeQuery(query: string) {
-    gRenderer = new Renderer($('#mainRenderContainer').get(0), functionData);
+    const newTimesquared = document.createElement("div");
+    $('#mainRenderContainer').prepend(newTimesquared)
+    gRenderer = new Renderer(newTimesquared, functionData);
     
     Database.rawQuery(decodeURI(query))
     .then(function (rawdata) {
@@ -124,7 +68,7 @@ function executeQuery(query: string) {
 }
 
 $(document).ready( function () {
-    $.ajax({url: "/data", success: render2});
+    $.ajax({url: "/data", success: render});
     
     /**
      * requestNextQuery
