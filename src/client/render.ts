@@ -2,16 +2,18 @@ import $ from 'jquery';
 import Timeline from './Timeline';
 import {AjaxData} from '../shared/shapes';
 
-import {FunctionData, Renderer} from './timesquared/frontend/Renderer';
+import {Renderer} from './timesquared/frontend/Renderer';
 import Database from './timesquared/frontend/Database';
 import TransferrableEventObj from './timesquared/shared/TransferrableEventObj';
 import {createQuery} from "../shared/Utils";
+import {MetaData} from "./timesquared/shared/shapes";
+import FunctionData from "./FunctionData";
 
 
 let dataProcessorWebWorker = new Worker("./js/backend/DataProcessorWebWorker.js");
 let gRenderer: Renderer = null;
 let functionData: FunctionData;
-let gMetadata = null,
+let gMetadata: MetaData = null,
     gStagedQueries = [],
     gStagedQueriesIndex = 0,
     gCompressedRegionThresholdFactor = 2000;
@@ -32,8 +34,6 @@ function render(result: AjaxData) {
     timeline.setupHoverBehaviour();
     timeline.render();
     timeline.setupTimeSquaredSampling((interval: number[], threadId: string) => {
-        console.log(interval);
-        console.log(program.absoluteStartTime)
         let absoluteTime = program.absoluteStartTime;
         let absoluteTimePrefix = absoluteTime.substring(0, absoluteTime.length - 15);
         let absoluteTimeOffset = absoluteTime.substring(absoluteTime.length - 15, absoluteTime.length);
@@ -109,6 +109,9 @@ $(document).ready( function () {
         
         case "compressedRegions":
             // Draw the metadata and the compressed regions
+            // Clean function data
+            gMetadata.functions = gMetadata.functions.map(
+                raw => raw.slice(1, raw.length - 1)); // get rid of extra quotation marks
 			gRenderer.renderMetadata(gMetadata, e.data);
             
             // Next step: start sending queries

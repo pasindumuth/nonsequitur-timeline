@@ -3,6 +3,8 @@
 import * as d3 from 'd3';
 import QueryConstructor from './QueryConstructor';
 import { MetaData, Event } from '../shared/shapes';
+import {colorHexstringToRgb, rgbToColorHexstring} from "../../../shared/Utils";
+import FunctionData from "../../FunctionData";
 
 const
     G_COMPRESSED_VIZ_WIDTH = 50, //px
@@ -21,24 +23,6 @@ const
      * The number of viz's that get filled with events per query
      */
     G_NLAYERS_PER_QUERY_BATCH = 2;
-
-function byte2Hex (n: number): string {
-    let str = n.toString(16);
-    return "00".substr(str.length) + str;
-}
-
-function rgbToColorHexstring (r: number, g: number, b: number): string {
-    return '#' + byte2Hex(r) + byte2Hex(g) + byte2Hex(b);
-}
-
-function colorHexstringToRgb (hex: string): number[] {
-    let col = [],
-        i;
-    for (i = 1; i < 7; i+=2) {
-        col.push(parseInt(hex.substr(i, 2), 16));
-    }
-    return col;
-}
 
 function infoHTML (thread, func, abstime, reltime) {
     return (func ? "thread " + thread + ": " + func.bold() : "") + "<br>" +
@@ -442,23 +426,19 @@ export class Renderer {
     };
 
     renderMetadata_generateEventColors(metadata: MetaData) {
-        let eventColor;
         let functions = this.functionData.functions;
         for (let func of metadata.functions) {
             if (!functions.includes(func)) {
                 let index = functions.length;
-                let colOffset = Math.floor(index / 20);
-                
-                if (colOffset == 0) {
-                    eventColor = d3.schemeCategory20[index % 20];
-                } else {
-                    let rgbEventColor = colorHexstringToRgb(d3.schemeCategory20[index % 20]);
-                    eventColor = rgbToColorHexstring(rgbEventColor[0] - colOffset, rgbEventColor[1] - colOffset, rgbEventColor[2] - colOffset);
-                }
-
+                const colOffset = Math.floor(index / 20);
+                const rgbEventColor = colorHexstringToRgb(d3.schemeCategory20[index % 20]);
+                const eventColor = rgbToColorHexstring(
+                    rgbEventColor[0] - colOffset,
+                    rgbEventColor[1] - colOffset,
+                    rgbEventColor[2] - colOffset
+                );
                 this.functionData.eventColors[func] = eventColor;
                 this.functionData.colToEvent[eventColor] = func;
-
                 functions.push(func);
             }
         }
@@ -512,18 +492,6 @@ export class Renderer {
         
         return allQueries;
     };
-}
-
-export class FunctionData {
-    functions: Array<string>;
-    eventColors: Map<string, number[]>;
-    colToEvent: Map<number[], string>;
-
-    constructor(functions: string[]) {
-        this.functions = functions;
-        this.eventColors = new Map<string, number[]>();
-        this.colToEvent = new Map<number[], string>();
-    }
 }
 
 /**

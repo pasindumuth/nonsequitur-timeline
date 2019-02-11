@@ -16,3 +16,21 @@ export function createQuery(absTimePrefix: string, timeStart: number, timeEnd: n
         + " and tid = " + threadID
         + ";";
 }
+
+export function byte2Hex (n: number): string {
+    let str = n.toString(16);
+    return "00".substr(str.length) + str;
+}
+
+export function rgbToColorHexstring (r: number, g: number, b: number): string {
+    return '#' + byte2Hex(r) + byte2Hex(g) + byte2Hex(b);
+}
+
+export function colorHexstringToRgb (hex: string): number[] {
+    let col = [],
+        i;
+    for (i = 1; i < 7; i+=2) {
+        col.push(parseInt(hex.substr(i, 2), 16));
+    }
+    return col;
+}
