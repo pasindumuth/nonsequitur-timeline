@@ -1,3 +1,4 @@
+import { cloneDeep } from 'lodash';
 import fs from 'fs';
 import path from 'path';
 import {Config} from './config'
@@ -107,22 +108,116 @@ class Filter {
     }
 }
 
-/**
- * Recall that single function patterns are treated differently than other patterns.
- * They are ommited when writing to disk, and the patternId of a single function
- * pattern is the functionId of it's base (as a result, their IDs are below the base
- * pattern ID).
- */
-function completeStrippedShapes(
-    numFunctions: number,
-    strippedShapeMap: Map<number, StrippedPatternShape>) {
-    for (let functionId = 0; functionId < numFunctions; functionId++) {
-        strippedShapeMap.set(functionId, {
-            id: functionId,
-            depth: 1,
-            baseFunctions: [functionId],
+class StrippedPatternProcessor {
+    // Ordering relation for patterns, -1, 0, 1 for <, =, > respectively.
+    comparison = new Map<number, Map<number, number>>();
+
+    /**
+     * Recall that single function patterns are treated differently than other patterns.
+     * They are ommited when writing to disk, and the patternId of a single function
+     * pattern is the functionId of it's base (as a result, their IDs are below the base
+     * pattern ID).
+     */
+    completeStrippedShapes(
+        numFunctions: number,
+        strippedShapeMap: Map<number, StrippedPatternShape>
+    ): StrippedPatternShape[] {
+        for (let functionId = 0; functionId < numFunctions; functionId++) {
+            strippedShapeMap.set(functionId, {
+                id: functionId,
+                depth: 1,
+                baseFunction: functionId,
+                patternIds: [Constants.NULL_PATTERN_ID],
+            });
+        }
+        return [{
+            id: Constants.NULL_PATTERN_ID,
+            depth: 0,
+            baseFunction: Constants.NULL_FUNCTION_ID,
             patternIds: [Constants.NULL_PATTERN_ID],
-        });
+        }, ...Array.from(strippedShapeMap.values())];
+    }
+
+    /**
+     * Sorts the stripped shapes according to the ordering of the functionIds.
+     */
+    sortStrippedShapes(strippedShapes: StrippedPatternShape[]): void {
+        this.computeOrderingRelation(strippedShapes);
+        strippedShapes.sort((s1, s2) => this.compare(s1.id, s2.id));
+        for (const shape of strippedShapes) {
+            shape.patternIds.sort(this.compare);
+        }
+    }
+
+    computeOrderingRelation(strippedShapes: StrippedPatternShape[]): void {
+        const shapes = cloneDeep(strippedShapes);
+        shapes.sort((s1, s2) => s1.depth - s2.depth);
+        for (const shape of shapes) {
+            this.comparison.set(shape.id, new Map());
+            this.comparison.get(shape.id).set(shape.id, 0);
+        }
+        for (let i1 = 0; i1 < shapes.length; i1++) {
+            const shape1 = shapes[i1];
+            shape1.patternIds.sort((id1, id2) => this.compare(id2, id1));
+            for (let i2 = 0; i2 < i1; i2++) {
+                const shape2 = shapes[i2];
+                shape2.patternIds.sort((id1, id2) => this.compare(id2, id1));
+                let comparedValue = this.compareFunction(shape1.baseFunction, shape2.baseFunction);
+                if (comparedValue === 0) {
+                    for (let i = 0;; i++) {
+                        if (i === shape2.patternIds.length) {
+                            comparedValue = 1;
+                        } else if (i === shape1.patternIds.length) {
+                            comparedValue = -1;
+                        } else {
+                            const childComparedValue = this.compare(shape1.patternIds[i], shape2.patternIds[i]);
+                            if (childComparedValue === 0) {
+                                continue;
+                            } else {
+                                comparedValue = childComparedValue;
+                            }
+                        }
+                        break;
+                    }
+                }
+                this.comparison.get(shape1.id).set(shape2.id, comparedValue);
+                this.comparison.get(shape2.id).set(shape1.id, -comparedValue);
+            }
+        }
+        this.verifyOrderingRelation()
+    }
+
+    compare = (patternId1: number, patternId2: number): number => {
+        return this.comparison.get(patternId1).get(patternId2);
+    };
+
+    private compareFunction(functionId1: number, functionId2: number): number {
+        if (functionId1 < functionId2) {
+            return -1;
+        } else if (functionId1 === functionId2) {
+            return 0;
+        } else {
+            return 1;
+        }
+    }
+
+    verifyOrderingRelation() {
+        const patternIds = Array.from(this.comparison.keys());
+        patternIds.sort(this.compare);
+        for (let patternId of patternIds) {
+            if (this.compare(patternId, patternId) !== 0) {
+                console.error("Same patterns are equal according to the ordering relation.")
+            }
+        }
+        for (let i1 = 0; i1 < patternIds.length; i1++) {
+            for (let i2 = 0; i2 < i1; i2++) {
+                if (this.compare(patternIds[i1], patternIds[i2]) !== 1
+                 || this.compare(patternIds[i2], patternIds[i1]) !== -1) {
+                    console.error("Patterns couldn't be linearized as it should be with the equivalence relation.");
+                }
+            }
+        }
+        console.log("Verified Ordering Relation.");
     }
 }
 
@@ -146,7 +241,7 @@ function main() : AjaxData {
                 strippedShapeMap.set(pattern.id, {
                     id: pattern.id,
                     depth: shape.depth,
-                    baseFunctions,
+                    baseFunction: baseFunctions[0],
                     patternIds: [Constants.NULL_PATTERN_ID, ...patternIds],
                 });
             }
@@ -174,14 +269,9 @@ function main() : AjaxData {
 
     const functionsFile = fs.readFileSync(path.join(__dirname, Constants.FUNCTIONS_FILE), "utf-8");
     const functions : string[] = JSON.parse(functionsFile);
-    completeStrippedShapes(functions.length, strippedShapeMap);
-    const strippedShapes: StrippedPatternShape[] = [{
-        id: Constants.NULL_PATTERN_ID,
-        depth: 0,
-        baseFunctions: [Constants.NULL_FUNCTION_ID],
-        patternIds: [Constants.NULL_PATTERN_ID],
-    }, ...Array.from(strippedShapeMap.values())]
-    strippedShapeMap
+    const strippedPatternProcessor = new StrippedPatternProcessor();
+    const strippedShapes = strippedPatternProcessor.completeStrippedShapes(functions.length, strippedShapeMap);
+    strippedPatternProcessor.sortStrippedShapes(strippedShapes);
     return {
         program: program,
         functions: functions,

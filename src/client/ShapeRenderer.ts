@@ -119,7 +119,7 @@ export default class ShapeRenderer {
         const length = this.lengthsById.get(shape.id) * Constants.PATTERN_VIS_PX_PER_UNIT;
         y -= Constants.PATTERN_VIS_PX_PER_UNIT;
         const context = canvas.getContext("2d");
-        context.fillStyle = this.functionData.functionIdToColor.get(shape.baseFunctions[0]);
+        context.fillStyle = this.functionData.functionIdToColor.get(shape.baseFunction);
         context.fillRect(x, y, length, Constants.PATTERN_VIS_PX_PER_UNIT);
         x += Constants.PATTERN_VIS_PX_PER_UNIT;
         for (const childShapeId of shape.patternIds) {
@@ -163,7 +163,7 @@ export default class ShapeRenderer {
             const shape1 = shapes[i1];
             for (let i2 = 0; i2 < i1; i2++) {
                 const shape2 = shapes[i2];
-                let distance = this.getFunctionDistance(shape1.baseFunctions[0], shape2.baseFunctions[0]);
+                let distance = this.getFunctionDistance(shape1.baseFunction, shape2.baseFunction);
                 let hausdorffDistance = 0;
                 for (const patternId1 of shape1.patternIds) {
                     let minDistance = this.getDistance(patternId1, shape2.patternIds[0]);
@@ -209,15 +209,7 @@ export default class ShapeRenderer {
 
     verify() {
         console.log(this.distanceMap);
-        this.verifyShapes();
         this.verifyMetric();
-    }
-
-    verifyShapes() {
-        for (const shape of this.shapes) {
-            assert.equal(shape.baseFunctions.length, 1,
-                "More than one base function for pattern: " + shape.id + ".");
-        }
     }
 
     verifyMetric() {

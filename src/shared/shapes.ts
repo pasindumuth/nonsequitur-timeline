@@ -51,6 +51,6 @@ export class Metadata {
 export class StrippedPatternShape {
     id: number;
     depth: number;
-    baseFunctions: number[];
+    baseFunction: number;
     patternIds: number[];
 }
