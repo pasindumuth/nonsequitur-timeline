@@ -73,6 +73,96 @@ a img {
     transform: translate(-50%, -50%);
 }
 
+
+/**
+ * Pattern view
+ */
+
+.pattern-view-root {
+}
+
+.all-pattern-shape-container {
+    float: left;
+    height: 100vh;
+    overflow: scroll;
+    width: 50%;
+}
+
+.filtered-pattern-shape-container {
+    float: right;
+    width: 50%
+}
+
+.filtered-pattern-tool-bar {
+    display: flex;
+    font-size: 0.8em;
+}
+
+.filtered-pattern-search-bar {
+    align-items: center;
+    display: flex;
+    height: 5vh;
+}
+
+.filtered-pattern-search-id {
+    margin-left: 25px;
+    width: 60px;
+}
+
+.filtered-pattern-search-distance {
+    margin-left: 25px;
+    width: 60px;
+}
+
+.filtered-pattern-search-submit {
+    background-color: lightgrey;
+    height: 25px;
+    margin-left: 20px;
+}
+
+.filtered-pattern-search-results-container {
+    height: 95vh;
+    overflow: scroll;
+}
+
+.pattern-shape-container {
+    align-items: center;
+    display: flex;
+    flex-wrap: nowrap;
+}
+
+.pattern-shape-label {
+    font-size: 0.8em;
+    min-width: 50px;
+}
+
+.filtered-pattern-distance-search {
+    align-items: center;
+    display: flex;
+}
+
+.filtered-pattern-distance-search-pattern-1 {
+    margin-left: 25px;
+    width: 60px;
+}
+
+.filtered-pattern-distance-search-pattern-2 {
+    margin-left: 25px;
+    width: 60px;
+}
+
+.filtered-pattern-distance {
+    margin-left: 25px;
+    width: 25px;
+}
+
+.filtered-pattern-distance-search-submit {
+    background-color: lightgrey;
+    height: 25px;
+    margin-left: 20px;
+}
+
+
 /*body {
   font-family: "sans-serif";
 }

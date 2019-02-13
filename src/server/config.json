@@ -11,57 +11,7 @@
     {
       "threadID": "1",
       "numTopPatterns" : 50,
-      "filePath": "../data/thread.1.patterns"
-    },
-    {
-      "threadID": "2",
-      "numTopPatterns" : 50,
-      "filePath": "../data/thread.2.patterns"
-    },
-    {
-      "threadID": "3",
-      "numTopPatterns" : 50,
-      "filePath": "../data/thread.3.patterns"
-    },
-    {
-      "threadID": "4",
-      "numTopPatterns" : 50,
-      "filePath": "../data/thread.4.patterns"
-    },
-    {
-      "threadID": "5",
-      "numTopPatterns" : 50,
-      "filePath": "../data/thread.5.patterns"
-    },
-    {
-      "threadID": "6",
-      "numTopPatterns" : 50,
-      "filePath": "../data/thread.6.patterns"
-    },
-    {
-      "threadID": "7",
-      "numTopPatterns" : 50,
-      "filePath": "../data/thread.7.patterns"
-    },
-    {
-      "threadID": "8",
-      "numTopPatterns" : 50,
-      "filePath": "../data/thread.8.patterns"
-    },
-    {
-      "threadID": "9",
-      "numTopPatterns" : 50,
-      "filePath": "../data/thread.9.patterns"
-    },
-    {
-      "threadID": "10",
-      "numTopPatterns" : 50,
-      "filePath": "../data/thread.10.patterns"
-    },
-    {
-      "threadID": "11",
-      "numTopPatterns" : 50,
-      "filePath": "../data/thread.11.patterns"
+      "filePath": "../data/thread.1.patterns.0distance"
     }
   ]
 }

@@ -10,10 +10,28 @@
 		<!-- Pattern CSS -->
 		<link rel="stylesheet" href="css/styles.css" type="text/css">
 	</head>
-	<body>	
+	<body>
 		<div id="mainPatternRenderContainer"></div>
-		
 		<div id="mainRenderContainer"></div>
+		<div class="pattern-view-root">
+			<div class="all-pattern-shape-container"></div>
+			<div class="filtered-pattern-shape-container">
+				<div class="filtered-pattern-tool-bar">
+					<div class="filtered-pattern-search-bar">
+						<input class="filtered-pattern-search-id">
+						<input class="filtered-pattern-search-distance">
+						<button type="submit" class="filtered-pattern-search-submit">Filter</button>
+					</div>
+					<div class="filtered-pattern-distance-search">
+						<input class="filtered-pattern-distance-search-pattern-1">
+						<input class="filtered-pattern-distance-search-pattern-2">
+						<div class="filtered-pattern-distance"></div>
+						<button type="submit" class="filtered-pattern-distance-search-submit">Search</button>
+					</div>
+				</div>
+				<div class="filtered-pattern-search-results-container"></div>
+			</div>
+		</div>
 		<!-- This filler allows the user to scroll past the bottom of the screen
 		to look at parts of the trace that may be blocked by the info bar -->
 		<div class="footerFiller"></div>

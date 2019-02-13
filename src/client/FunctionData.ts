@@ -5,6 +5,8 @@ export default class FunctionData {
     functions: Array<string>;
     eventColors: { [p: string]: string; } = {};
     colToEvent: { [p: string]: string; } = {};
+    functionIdToColor = new Map<number, string>();
+    colorToFunctionId = new Map<string, number>();
 
     constructor(functions: string[]) {
         for (let index = 0; index < functions.length; index++) {
@@ -18,6 +20,8 @@ export default class FunctionData {
             );
             this.eventColors[func] = eventColor;
             this.colToEvent[eventColor] = func;
+            this.functionIdToColor.set(index, eventColor);
+            this.colorToFunctionId.set(eventColor, index);
         }
 
         this.functions = functions;

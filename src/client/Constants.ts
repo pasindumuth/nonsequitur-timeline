@@ -1,5 +1,9 @@
 export default class Constants {
+    // Pattern Visualization
+    static PATTERN_VIS_PX_PER_UNIT = 10;
+    static PATTERN_VIS_PADDING = 10;
 
+    // Timeline
     static TIMELINE_RIBBON_HEIGHT = 8;
     static TIMELINE_LEFT_PADDING = 20;
     static TIMELINE_TOP_PADDING = 20;

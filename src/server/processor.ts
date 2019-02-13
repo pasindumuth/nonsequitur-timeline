@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import {Config} from './config'
-import {Program, Thread, Pattern, AjaxData, Metadata} from '../shared/shapes';
+import {Program, Thread, Pattern, AjaxData, Metadata, StrippedPatternShape} from '../shared/shapes';
 import Constants from '../shared/Constants'
 
 const config: Config = require('./config.json');
@@ -107,18 +107,50 @@ class Filter {
     }
 }
 
+/**
+ * Recall that single function patterns are treated differently than other patterns.
+ * They are ommited when writing to disk, and the patternId of a single function
+ * pattern is the functionId of it's base (as a result, their IDs are below the base
+ * pattern ID).
+ */
+function completeStrippedShapes(
+    numFunctions: number,
+    strippedShapeMap: Map<number, StrippedPatternShape>) {
+    for (let functionId = 0; functionId < numFunctions; functionId++) {
+        strippedShapeMap.set(functionId, {
+            id: functionId,
+            depth: 1,
+            baseFunctions: [functionId],
+            patternIds: [Constants.NULL_PATTERN_ID],
+        });
+    }
+}
 
 function main() : AjaxData {
-    let threads = new Array<Thread>();
+    const threads = new Array<Thread>();
+    const strippedShapeMap = new Map<number, StrippedPatternShape>();
     for (let threadConfig of config.threads) {
-        let threadFile = fs.readFileSync(path.join(__dirname, threadConfig.filePath), "utf-8");
-        let patterns : Pattern[] = JSON.parse(threadFile);
-        let thread: Thread = {
+        const threadFile = fs.readFileSync(path.join(__dirname, threadConfig.filePath), "utf-8");
+        const patterns : Pattern[] = JSON.parse(threadFile);
+        const thread: Thread = {
             id: threadConfig.threadID,
             patterns: patterns
         };
-
         threads.push(thread);
+
+        for (const pattern of patterns) {
+            if (!strippedShapeMap.has(pattern.id)) {
+                const shape = pattern.representation;
+                const baseFunctions = shape.baseFunctions.map(val => val.baseFunction);
+                const patternIds = shape.patternIds.map(val => val.patternId);
+                strippedShapeMap.set(pattern.id, {
+                    id: pattern.id,
+                    depth: shape.depth,
+                    baseFunctions,
+                    patternIds: [Constants.NULL_PATTERN_ID, ...patternIds],
+                });
+            }
+        }
     }
 
     let metadataFile = fs.readFileSync(path.join(__dirname, config.programConfig.METADATA_PATH), "utf-8");
@@ -140,11 +172,20 @@ function main() : AjaxData {
         }
     }
 
-    let functionsFile = fs.readFileSync(path.join(__dirname, Constants.FUNCTIONS_FILE), "utf-8");
-    let functions : string[] = JSON.parse(functionsFile);
+    const functionsFile = fs.readFileSync(path.join(__dirname, Constants.FUNCTIONS_FILE), "utf-8");
+    const functions : string[] = JSON.parse(functionsFile);
+    completeStrippedShapes(functions.length, strippedShapeMap);
+    const strippedShapes: StrippedPatternShape[] = [{
+        id: Constants.NULL_PATTERN_ID,
+        depth: 0,
+        baseFunctions: [Constants.NULL_FUNCTION_ID],
+        patternIds: [Constants.NULL_PATTERN_ID],
+    }, ...Array.from(strippedShapeMap.values())]
+    strippedShapeMap
     return {
         program: program,
         functions: functions,
+        strippedPatternShapes: strippedShapes,
     }
 }
 

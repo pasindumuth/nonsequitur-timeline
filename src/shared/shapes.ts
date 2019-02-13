@@ -1,6 +1,7 @@
 export class AjaxData {
     program: Program;
     functions: string[];
+    strippedPatternShapes: StrippedPatternShape[];
 }
 
 export class Program {
@@ -20,6 +21,11 @@ export class Pattern {
     intervals: number[][];
 }
 
+/**
+ * The shape passed in omits the null pattern, omits single function
+ * patterns, and ids of single function patterns is just the base
+ * function id.
+ */
 export class PatternShape {
     depth: number;
     baseFunctions: {
@@ -36,4 +42,15 @@ export class Metadata {
     absoluteStartTime: string;
     absoluteEndTime: string;
     duration: number;
+}
+/**
+ * This class fixes some of the problems with the patterns passed in.
+ * We reintroduce singleFunctionPatterns, and we include the null pattern's
+ * Occurance in the constituent patterns.
+ */
+export class StrippedPatternShape {
+    id: number;
+    depth: number;
+    baseFunctions: number[];
+    patternIds: number[];
 }

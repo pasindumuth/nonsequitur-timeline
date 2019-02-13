@@ -8,6 +8,7 @@ import TransferrableEventObj from './timesquared/shared/TransferrableEventObj';
 import {createQuery} from "../shared/Utils";
 import {MetaData} from "./timesquared/shared/shapes";
 import FunctionData from "./FunctionData";
+import ShapeRenderer from "./ShapeRenderer";
 
 
 let dataProcessorWebWorker = new Worker("./js/backend/DataProcessorWebWorker.js");
@@ -29,7 +30,7 @@ function render(result: AjaxData) {
     let div = document.createElement("div");
     $(div).addClass("canvas-div");
     $(div).append(timeline.canvas);
-    $(rootDiv).append(div);
+    // $(rootDiv).append(div);
 
     timeline.setupHoverBehaviour();
     timeline.render();
@@ -44,8 +45,11 @@ function render(result: AjaxData) {
     });
 
     functionData = new FunctionData(result.functions);
-    gRenderer = new Renderer($('#mainRenderContainer').get(0), functionData);
-
+    // gRenderer = new Renderer($('#mainRenderContainer').get(0), functionData);
+    const shapeRenderer = new ShapeRenderer(result.strippedPatternShapes, functionData);
+    shapeRenderer.renderAll();
+    shapeRenderer.setupClickHandlers();
+    shapeRenderer.setupDistanceLabel();
     console.log("all done");
 }
 

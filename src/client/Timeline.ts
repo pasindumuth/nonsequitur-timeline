@@ -47,7 +47,6 @@ export default class Timeline {
         this.processor = new ResolutionReducer(program, this.timelineWidth);
         for (let threadId of this.processor.reducedResolutionProgram.keys()) {
             this.threadHeightMap.set(threadId, this.processor.reducedResolutionProgram.get(threadId).length * Constants.TIMELINE_RIBBON_HEIGHT);
-            console.log(this.processor.reducedResolutionProgram.get(threadId).length);
         }
 
         let totalHeight = 0;

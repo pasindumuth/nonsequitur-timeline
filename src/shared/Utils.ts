@@ -1,3 +1,5 @@
+import Constants from "./Constants";
+
 /**
  * Creates a SQL query that gets all the events in the trace between startTime
  * and endTime for the given thread. This is mainly used to get the events in a pattern.
@@ -33,4 +35,17 @@ export function colorHexstringToRgb (hex: string): number[] {
         col.push(parseInt(hex.substr(i, 2), 16));
     }
     return col;
+}
+
+export function isNullPattern(patternId: number) {
+    return patternId == Constants.NULL_PATTERN_ID;
+}
+
+export function e(name: string, classNames: string[], text?: string) {
+    const element = document.createElement(name);
+    element.classList.add(...classNames);
+    if (text) {
+        element.appendChild(document.createTextNode(text));
+    }
+    return element;
 }
