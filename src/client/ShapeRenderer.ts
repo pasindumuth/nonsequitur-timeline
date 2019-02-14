@@ -4,10 +4,13 @@ import assert from "assert";
 import {StrippedPatternShape} from "../shared/shapes";
 import {e, isNullPattern} from "../shared/Utils";
 import FunctionData from "./FunctionData";
+import $ from "jquery";
 
 export default class ShapeRenderer {
     shapes: StrippedPatternShape[];
     functionData: FunctionData;
+    infoBox: HTMLDivElement;
+
     indexedShapes = new Map<number, StrippedPatternShape>();
     lengthsById = new Map<number, number>();
     distanceMap = new Map<number, Map<number, number>>();
@@ -18,6 +21,12 @@ export default class ShapeRenderer {
     constructor(shapes: StrippedPatternShape[], functionData: FunctionData) {
         this.shapes = shapes;
         this.functionData = functionData;
+        this.infoBox = <HTMLDivElement>document.getElementsByClassName("general-info-box")[0];
+        window.addEventListener("mousemove", () => {
+            $(this.infoBox).css({
+                "visibility": "hidden"
+            })
+        }, true);
 
         for (const shape of shapes) {
             this.indexedShapes.set(shape.id, shape);
@@ -27,6 +36,49 @@ export default class ShapeRenderer {
         this.computeDistance();
         this.renderShapesForPage();
         // this.verify(); // Run verification when we make substantial changes
+    }
+
+    renderAll() {
+        const allContainer = document.getElementsByClassName("all-pattern-shape-container")[0];
+        for (const renderedShape of this.renderedShapesAll.values()) {
+            allContainer.appendChild(renderedShape);
+        }
+    }
+
+    setupClickHandlers() {
+        const patternIdInput = <HTMLInputElement>document.getElementsByClassName("filtered-pattern-search-id")[0];
+        const distanceInput = <HTMLInputElement>document.getElementsByClassName("filtered-pattern-search-distance")[0];
+        const submitButton = <HTMLButtonElement>document.getElementsByClassName("filtered-pattern-search-submit")[0];
+        submitButton.addEventListener("click", () => {
+            const patternId = parseInt(patternIdInput.value);
+            const distance = parseFloat(distanceInput.value);
+            const container = document.createElement("div");
+            container.appendChild(this.renderedShapesFilter.get(patternId));
+            for (const shape of this.shapes) {
+                if (this.getDistance(patternId, shape.id) <= distance && this.renderedShapesFilter.has(shape.id)) {
+                    container.appendChild(this.renderedShapesFilter.get(shape.id));
+                }
+            }
+            const filteredContainer = <HTMLDivElement>document.getElementsByClassName("filtered-pattern-search-results-container")[0];
+            $(filteredContainer).empty();
+            filteredContainer.appendChild(container);
+        });
+    }
+
+    setupDistanceLabel() {
+        const input1 = <HTMLInputElement>document.getElementsByClassName("filtered-pattern-distance-search-pattern-1")[0];
+        const input2 = <HTMLInputElement>document.getElementsByClassName("filtered-pattern-distance-search-pattern-2")[0];
+        const distanceContainer = <HTMLDivElement>document.getElementsByClassName("filtered-pattern-distance")[0];
+        const submitButton = <HTMLButtonElement>document.getElementsByClassName("filtered-pattern-distance-search-submit")[0];
+        submitButton.addEventListener("click", () => {
+            const patternId1 = parseInt(input1.value);
+            const patternId2 = parseInt(input2.value);
+            if (this.exists(patternId1) && this.exists(patternId2)) {
+                const distance = e("label", [], this.getDistance(patternId1, patternId2).toString());
+                $(distanceContainer).empty();
+                distanceContainer.appendChild(distance);
+            }
+        });
     }
 
     renderShapesForPage() {
@@ -47,53 +99,6 @@ export default class ShapeRenderer {
             }
         }
         return renderedShapes;
-    }
-
-    renderAll() {
-        const allContainer = document.getElementsByClassName("all-pattern-shape-container")[0];
-        for (const renderedShape of this.renderedShapesAll.values()) {
-            allContainer.appendChild(renderedShape);
-        }
-    }
-
-    setupClickHandlers() {
-        const patternIdInput = <HTMLInputElement>document.getElementsByClassName("filtered-pattern-search-id")[0];
-        const distanceInput = <HTMLInputElement>document.getElementsByClassName("filtered-pattern-search-distance")[0];
-        const submitButton = <HTMLButtonElement>document.getElementsByClassName("filtered-pattern-search-submit")[0];
-        let prevResults: Node;
-        submitButton.addEventListener("click", () => {
-            const patternId = parseInt(patternIdInput.value);
-            const distance = parseFloat(distanceInput.value);
-            const container = document.createElement("div");
-            container.appendChild(this.renderedShapesFilter.get(patternId));
-            for (const shape of this.shapes) {
-                if (this.getDistance(patternId, shape.id) <= distance && this.renderedShapesFilter.has(shape.id)) {
-                    container.appendChild(this.renderedShapesFilter.get(shape.id));
-                }
-            }
-            const filteredContainer = <HTMLDivElement>document.getElementsByClassName("filtered-pattern-search-results-container")[0];
-            prevResults && filteredContainer.removeChild(prevResults);
-            prevResults = container;
-            filteredContainer.appendChild(container);
-        });
-    }
-
-    setupDistanceLabel() {
-        const input1 = <HTMLInputElement>document.getElementsByClassName("filtered-pattern-distance-search-pattern-1")[0];
-        const input2 = <HTMLInputElement>document.getElementsByClassName("filtered-pattern-distance-search-pattern-2")[0];
-        const distanceContainer = <HTMLDivElement>document.getElementsByClassName("filtered-pattern-distance")[0];
-        const submitButton = <HTMLButtonElement>document.getElementsByClassName("filtered-pattern-distance-search-submit")[0];
-        let prevDistance: Node;
-        submitButton.addEventListener("click", () => {
-            const patternId1 = parseInt(input1.value);
-            const patternId2 = parseInt(input2.value);
-            if (this.exists(patternId1) && this.exists(patternId2)) {
-                const distance = e("label", [], this.getDistance(patternId1, patternId2).toString());
-                prevDistance && distanceContainer.removeChild(prevDistance);
-                prevDistance = distance;
-                distanceContainer.appendChild(distance);
-            }
-        });
     }
 
     renderShape(shape: StrippedPatternShape): HTMLCanvasElement {
@@ -118,6 +123,7 @@ export default class ShapeRenderer {
     renderShapeOnCanvas(canvas: HTMLCanvasElement, x: number, y: number, shape: StrippedPatternShape) {
         const length = this.lengthsById.get(shape.id) * Constants.PATTERN_VIS_PX_PER_UNIT;
         y -= Constants.PATTERN_VIS_PX_PER_UNIT;
+        this.addRenderedShapeEventLister(canvas, x, y, length, shape);
         const context = canvas.getContext("2d");
         context.fillStyle = this.functionData.functionIdToColor.get(shape.baseFunction);
         context.fillRect(x, y, length, Constants.PATTERN_VIS_PX_PER_UNIT);
@@ -128,6 +134,35 @@ export default class ShapeRenderer {
             this.renderShapeOnCanvas(canvas, x, y, childShape);
             x += (this.lengthsById.get(childShapeId) + 1) * Constants.PATTERN_VIS_PX_PER_UNIT;
         }
+    }
+
+    addRenderedShapeEventLister(canvas: HTMLCanvasElement, x: number, y: number, length: number, shape: StrippedPatternShape) {
+        const cssX = x / 2;
+        const cssY = y / 2;
+        const cssLength = length / 2;
+        const cssHeight = Constants.PATTERN_VIS_PX_PER_UNIT / 2;
+        canvas.addEventListener("mousemove", (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const coordX = e.clientX - rect.left;
+            const coordY = e.clientY - rect.top;
+            if (cssX <= coordX && coordX < cssX + cssLength
+             && cssY <= coordY && coordY < cssY + cssHeight) {
+                const borderColor = this.functionData.functionIdToColor.get(shape.baseFunction);
+                $(this.infoBox)
+                    .html(`
+                    <div class="general-info-box-contents">
+                        <div>${shape.id}</div>
+                        <div>${shape.baseFunction}</div>
+                    </div>
+                    `)
+                    .css({
+                        "visibility": "visible",
+                        "left": e.clientX + 40,
+                        "top": e.clientY + 2,
+                        "border-color": borderColor
+                    });
+            }
+        });
     }
 
     computeAllLengths() {
@@ -208,7 +243,6 @@ export default class ShapeRenderer {
     }
 
     verify() {
-        console.log(this.distanceMap);
         this.verifyMetric();
     }
 

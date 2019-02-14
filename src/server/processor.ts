@@ -158,10 +158,10 @@ class StrippedPatternProcessor {
         }
         for (let i1 = 0; i1 < shapes.length; i1++) {
             const shape1 = shapes[i1];
-            shape1.patternIds.sort((id1, id2) => this.compare(id2, id1));
+            shape1.patternIds.sort(this.compare);
             for (let i2 = 0; i2 < i1; i2++) {
                 const shape2 = shapes[i2];
-                shape2.patternIds.sort((id1, id2) => this.compare(id2, id1));
+                shape2.patternIds.sort(this.compare);
                 let comparedValue = this.compareFunction(shape1.baseFunction, shape2.baseFunction);
                 if (comparedValue === 0) {
                     for (let i = 0;; i++) {

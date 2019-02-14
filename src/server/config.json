@@ -9,9 +9,9 @@
     
   "threads": [
     {
-      "threadID": "1",
+      "threadID": "7",
       "numTopPatterns" : 50,
-      "filePath": "../data/thread.1.patterns.0distance"
+      "filePath": "../data/thread.7.patterns.0distance"
     }
   ]
 }

@@ -79,6 +79,19 @@ a img {
  */
 
 .pattern-view-root {
+
+}
+
+.general-info-box {
+    background-color: white;
+    border: 3px solid black;
+    min-width: 50px;
+    position: fixed;
+    visibility: hidden;
+}
+
+.general-info-box-contents {
+    padding: 5px;
 }
 
 .all-pattern-shape-container {
