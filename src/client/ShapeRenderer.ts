@@ -1,41 +1,37 @@
 import Constants from "./Constants";
-import {default as SharedConstants} from "../shared/Constants";
-import assert from "assert";
 import {StrippedPatternShape} from "../shared/shapes";
 import {e, isNullPattern} from "../shared/Utils";
 import FunctionData from "./FunctionData";
 import $ from "jquery";
+import ShapeMath from "./ShapeMath";
 
 export default class ShapeRenderer {
     shapes: StrippedPatternShape[];
     functionData: FunctionData;
     infoBox: HTMLDivElement;
 
-    indexedShapes = new Map<number, StrippedPatternShape>();
-    lengthsById = new Map<number, number>();
-    distanceMap = new Map<number, Map<number, number>>();
+    indexedShapes: Map<number, StrippedPatternShape>;
+    lengthsById: Map<number, number>;
+    shapeMath: ShapeMath;
 
     renderedShapesAll = new Map<number, Node>();
     renderedShapesFilter = new Map<number, Node>();
 
-    constructor(shapes: StrippedPatternShape[], functionData: FunctionData) {
+    constructor(shapes: StrippedPatternShape[], functionData: FunctionData, shapeMath: ShapeMath) {
         this.shapes = shapes;
         this.functionData = functionData;
         this.infoBox = <HTMLDivElement>document.getElementsByClassName("general-info-box")[0];
         window.addEventListener("mousemove", () => {
             $(this.infoBox).css({
                 "visibility": "hidden"
-            })
+            });
         }, true);
 
-        for (const shape of shapes) {
-            this.indexedShapes.set(shape.id, shape);
-        }
+        this.indexedShapes = shapeMath.indexedShapes;
+        this.lengthsById = shapeMath.lengthsById;
+        this.shapeMath = shapeMath;
 
-        this.computeAllLengths();
-        this.computeDistance();
         this.renderShapesForPage();
-        // this.verify(); // Run verification when we make substantial changes
     }
 
     renderAll() {
@@ -55,7 +51,7 @@ export default class ShapeRenderer {
             const container = document.createElement("div");
             container.appendChild(this.renderedShapesFilter.get(patternId));
             for (const shape of this.shapes) {
-                if (this.getDistance(patternId, shape.id) <= distance && this.renderedShapesFilter.has(shape.id)) {
+                if (this.shapeMath.distance(patternId, shape.id) <= distance && this.renderedShapesFilter.has(shape.id)) {
                     container.appendChild(this.renderedShapesFilter.get(shape.id));
                 }
             }
@@ -74,19 +70,19 @@ export default class ShapeRenderer {
             const patternId1 = parseInt(input1.value);
             const patternId2 = parseInt(input2.value);
             if (this.exists(patternId1) && this.exists(patternId2)) {
-                const distance = e("label", [], this.getDistance(patternId1, patternId2).toString());
+                const distance = e("label", [], this.shapeMath.distance(patternId1, patternId2).toString());
                 $(distanceContainer).empty();
                 distanceContainer.appendChild(distance);
             }
         });
     }
 
-    renderShapesForPage() {
+    private renderShapesForPage() {
         this.renderedShapesAll = this.renderShapes();
         this.renderedShapesFilter = this.renderShapes();
     }
 
-    renderShapes(): Map<number, Node> {
+    private renderShapes(): Map<number, Node> {
         const renderedShapes = new Map<number, Node>();
         for (const shape of this.shapes) {
             if (isNullPattern(shape.id)) continue;
@@ -101,7 +97,7 @@ export default class ShapeRenderer {
         return renderedShapes;
     }
 
-    renderShape(shape: StrippedPatternShape): HTMLCanvasElement {
+    private renderShape(shape: StrippedPatternShape): HTMLCanvasElement {
         const canvas = document.createElement("canvas");
         const length = this.lengthsById.get(shape.id);
         const depth = shape.depth;
@@ -120,7 +116,7 @@ export default class ShapeRenderer {
         return canvas;
     }
 
-    renderShapeOnCanvas(canvas: HTMLCanvasElement, x: number, y: number, shape: StrippedPatternShape) {
+    private renderShapeOnCanvas(canvas: HTMLCanvasElement, x: number, y: number, shape: StrippedPatternShape) {
         const length = this.lengthsById.get(shape.id) * Constants.PATTERN_VIS_PX_PER_UNIT;
         y -= Constants.PATTERN_VIS_PX_PER_UNIT;
         this.addRenderedShapeEventLister(canvas, x, y, length, shape);
@@ -136,7 +132,7 @@ export default class ShapeRenderer {
         }
     }
 
-    addRenderedShapeEventLister(canvas: HTMLCanvasElement, x: number, y: number, length: number, shape: StrippedPatternShape) {
+    private addRenderedShapeEventLister(canvas: HTMLCanvasElement, x: number, y: number, length: number, shape: StrippedPatternShape) {
         const cssX = x / 2;
         const cssY = y / 2;
         const cssLength = length / 2;
@@ -165,108 +161,7 @@ export default class ShapeRenderer {
         });
     }
 
-    computeAllLengths() {
-        for (const shape of this.shapes) {
-            if (isNullPattern(shape.id)) continue;
-            this.computeLength(shape.id);
-        }
-    }
-
-    computeLength(id: number) {
-        assert.ok(!isNullPattern(id), "Computing length of null pattern");
-        if (!this.lengthsById.has(id)) {
-            const shape = this.indexedShapes.get(id);
-            const numNonNullPatterns = shape.patternIds.length - 1;
-            let length = numNonNullPatterns + 1;
-            for (const childShapeId of shape.patternIds) {
-                if (isNullPattern(childShapeId)) continue;
-                length += this.computeLength(childShapeId);
-            }
-            this.lengthsById.set(id, length);
-        }
-        return this.lengthsById.get(id);
-    }
-
-    computeDistance() {
-        const shapes: StrippedPatternShape[] = [...this.shapes];
-        shapes.sort((s1, s2) => {return s1.depth - s2.depth; });
-        for (const shape of shapes) {
-            this.distanceMap.set(shape.id, new Map());
-            this.distanceMap.get(shape.id).set(shape.id, 0);
-        }
-        for (let i1 = 0; i1 < shapes.length; i1++) {
-            const shape1 = shapes[i1];
-            for (let i2 = 0; i2 < i1; i2++) {
-                const shape2 = shapes[i2];
-                let distance = this.getFunctionDistance(shape1.baseFunction, shape2.baseFunction);
-                let hausdorffDistance = 0;
-                for (const patternId1 of shape1.patternIds) {
-                    let minDistance = this.getDistance(patternId1, shape2.patternIds[0]);
-                    for (const patternId2 of shape2.patternIds) {
-                        minDistance = Math.min(minDistance, this.getDistance(patternId1, patternId2));
-                    }
-                    hausdorffDistance = Math.max(hausdorffDistance, minDistance);
-                }
-                for (const patternId2 of shape2.patternIds) {
-                    let minDistance = this.getDistance(patternId2, shape1.patternIds[0]);
-                    for (const patternId1 of shape1.patternIds) {
-                        minDistance = Math.min(minDistance, this.getDistance(patternId2, patternId1));
-                    }
-                    hausdorffDistance = Math.max(hausdorffDistance, minDistance);
-                }
-                distance += hausdorffDistance;
-                this.distanceMap.get(shape1.id).set(shape2.id, distance);
-                this.distanceMap.get(shape2.id).set(shape1.id, distance);
-            }
-        }
-    }
-
-    getFunctionDistance(functionId1: number, functionId2: number): number {
-        if (functionId1 !== functionId2) {
-            if (functionId1 === SharedConstants.NULL_FUNCTION_ID
-             || functionId2 === SharedConstants.NULL_FUNCTION_ID) {
-                return SharedConstants.NULL_FUNCTION_DISTANCE
-            } else {
-                return SharedConstants.FUNCTION_DISTANCE;
-            }
-        } else {
-            return 0;
-        }
-    }
-
-    getDistance(patternId1: number, patternId2: number) : number {
-        return this.distanceMap.get(patternId1).get(patternId2);
-    }
-
-    exists(patternId) {
+    private exists(patternId) {
         return this.indexedShapes.has(patternId);
-    }
-
-    verify() {
-        this.verifyMetric();
-    }
-
-    verifyMetric() {
-        for (const shape of this.shapes) {
-            assert.equal(this.getDistance(shape.id, shape.id), 0,
-                "Distance from self is not 0 for shape: " + shape.id.toString());
-        }
-        for (const shape1 of this.shapes) {
-            for (const shape2 of this.shapes) {
-                assert.equal(this.getDistance(shape1.id, shape2.id), this.getDistance(shape2.id, shape1.id),
-                    "Distance not symmetric.")
-            }
-        }
-        for (const shape1 of this.shapes) {
-            for (const shape2 of this.shapes) {
-                for (const shape3 of this.shapes) {
-                    const d12 = this.getDistance(shape1.id, shape2.id);
-                    const d23 = this.getDistance(shape2.id, shape3.id);
-                    const d13 = this.getDistance(shape1.id, shape3.id);
-                    assert.ok(d13 <= d12 + d23,
-                        "Distance is not transitive")
-                }
-            }
-        }
     }
 }

@@ -49,8 +49,8 @@ export class Metadata {
  * Occurance in the constituent patterns.
  */
 export class StrippedPatternShape {
-    id: number;
-    depth: number;
-    baseFunction: number;
-    patternIds: number[];
+    readonly id: number;
+    readonly depth: number;
+    readonly baseFunction: number;
+    readonly patternIds: number[];
 }
