@@ -1,7 +1,7 @@
-import Constants from "../shared/Constants";
+import Constants from "./Constants";
 import assert from "assert";
-import {StrippedPatternShape} from "../shared/shapes";
-import {isNullPattern} from "../shared/Utils";
+import {StrippedPatternShape} from "./shapes";
+import {isNullPattern} from "./Utils";
 
 export default class ShapeMath {
     shapes: StrippedPatternShape[];
@@ -43,7 +43,7 @@ export default class ShapeMath {
     }
 
     private computeDescendentShapesMap() {
-        const shapes = [...this.shapes];
+        const shapes: StrippedPatternShape[] = [...this.shapes];
         shapes.sort((s1, s2) => s1.depth - s2.depth);
         this.descendentShapesMap.set(Constants.NULL_PATTERN_ID, new Set());
         for (const shape of shapes) {

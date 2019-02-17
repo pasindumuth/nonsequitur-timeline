@@ -1,7 +1,7 @@
-import Constants from "../shared/Constants";
-import {StrippedPatternShape} from "../shared/shapes";
+import Constants from "./Constants";
+import {StrippedPatternShape} from "./shapes";
 import ShapeMath from "./ShapeMath";
-import {isNullPattern} from "../shared/Utils";
+import {isNullPattern} from "./Utils";
 
 export default class ShapeClusterer {
     shapes: StrippedPatternShape[];
@@ -39,7 +39,7 @@ export default class ShapeClusterer {
     }
 
     private computeClusters() {
-        const shapes = [...this.shapes];
+        const shapes: StrippedPatternShape[] = [...this.shapes];
         shapes.sort((s1, s2) => s1.depth - s2.depth);
         for (const shape of shapes) {
             if (isNullPattern(shape.id)) continue;

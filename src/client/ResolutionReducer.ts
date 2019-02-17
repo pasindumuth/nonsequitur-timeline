@@ -15,7 +15,7 @@ export default class ResolutionReducer {
     /**
      * The mined data, and the width of the (high resolution) canvas (about 2000px).
      * The pattern intervals are in the space of nanoseconds over the course of 60 seconds, which is
-     * far to granular to display across the screen on an HTML Canvas, which has a width of about 2000 pixels.
+     * far too granular to display across the screen on an HTML Canvas, which has a width of about 2000 pixels.
      * This algorithm partitions the time space into as many pixels there are in the width, and intelligently
      * chooses which pattern to show per partition, in an attempt to convey what is happening in general.
      */
@@ -60,7 +60,7 @@ export default class ResolutionReducer {
      *  We have a set of patterns for a given depth in a given thread. For every time partition,
      *  we simply choose the pattern that has the largest span in the partition.
      */
-    computeOffsets(patterns: Pattern[]) : {
+    computeOffsets(patterns: Pattern[]): {
         reducedResolutionPatterns: LowResolutionPattern[],
         sampleIntervalPerOffset: number[][],
         patternPerOffset: Pattern[]

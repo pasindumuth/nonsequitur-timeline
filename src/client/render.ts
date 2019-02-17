@@ -9,8 +9,8 @@ import {createQuery} from "../shared/Utils";
 import {MetaData} from "./timesquared/shared/shapes";
 import FunctionData from "./FunctionData";
 import ShapeRenderer from "./ShapeRenderer";
-import ShapeMath from "./ShapeMath";
-import ShapeClusterer from "./ShapeClusterer";
+import ShapeMath from "../shared/ShapeMath";
+import ShapeClusterer from "../shared/ShapeClusterer";
 
 
 let dataProcessorWebWorker = new Worker("./js/backend/DataProcessorWebWorker.js");

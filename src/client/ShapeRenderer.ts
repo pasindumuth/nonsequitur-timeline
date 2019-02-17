@@ -3,8 +3,8 @@ import {StrippedPatternShape} from '../shared/shapes';
 import {e, isNullPattern} from '../shared/Utils';
 import FunctionData from './FunctionData';
 import $ from 'jquery';
-import ShapeMath from './ShapeMath';
-import {Cluster} from './ShapeClusterer';
+import ShapeMath from '../shared/ShapeMath';
+import {Cluster} from '../shared/ShapeClusterer';
 
 export default class ShapeRenderer {
     shapes: StrippedPatternShape[];
