@@ -15,4 +15,5 @@ export default class Constants {
 
     // Mode
     static VERIFY = false;
+    static TIMELINE = false;
 }

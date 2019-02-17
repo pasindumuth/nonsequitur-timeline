@@ -112,7 +112,12 @@ export default class ShapeRenderer {
     showRenderedShapesInDiv(patternIds: Array<number>, outerContainer: HTMLDivElement): HTMLDivElement {
         const container = document.createElement('div');
         for (const patternId of patternIds) {
-            container.appendChild(this.renderedShapesFilter.get(patternId));
+            if (this.renderedShapesFilter.has(patternId)) {
+                container.appendChild(this.renderedShapesFilter.get(patternId));
+            } else {
+                const text = e('div', ['scrollable-box'], JSON.stringify(this.shapeMath.indexedShapes.get(patternId)));
+                container.appendChild(text);
+            }
         }
         $(outerContainer).empty();
         outerContainer.appendChild(container);

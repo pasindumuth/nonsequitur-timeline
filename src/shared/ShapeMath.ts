@@ -17,14 +17,21 @@ export default class ShapeMath {
         for (let index = 0; index < shapes.length; index++) {
             const shape = shapes[index];
             this.indexedShapes.set(shape.id, shape);
-            this.orderMap.set(shape.id, index);
         }
 
+        console.log('computing metric');
         this.computeAllLengths();
         this.computeDistance();
         this.computeDescendentShapesMap();
+        // if (Constants.VERIFY) {
+        //     console.log('verify metric');
+        //     this.verify();
+        // }
+        console.log('computing ordering relation');
+        this.computeOrderingRelation();
         if (Constants.VERIFY) {
-            this.verify();
+            console.log('verify ordering relation');
+            this.verifyOrderingRelation()
         }
     }
 
@@ -32,7 +39,7 @@ export default class ShapeMath {
         return this.distanceMap.get(patternId1).get(patternId2);
     }
 
-    compare(patternId1: number, patternId2: number): number {
+    compare = (patternId1: number, patternId2: number): number => {
         const index1 = this.orderMap.get(patternId1);
         const index2 = this.orderMap.get(patternId2);
         if (index1 < index2) {
@@ -42,6 +49,81 @@ export default class ShapeMath {
         } else {
             return 1;
         }
+    }
+
+    private computeOrderingRelation(): void {
+        // Ordering relation for patterns, -1, 0, 1 for <, =, > respectively.
+        const comparison = new Map<number, Map<number, number>>();
+        const compare = (patternId1: number, patternId2: number): number => {
+            return comparison.get(patternId1).get(patternId2);
+        };
+        const shapes: StrippedPatternShape[] = [...this.shapes];
+        shapes.sort((s1, s2) => s1.depth - s2.depth);
+        for (const shape of shapes) {
+            comparison.set(shape.id, new Map());
+            comparison.get(shape.id).set(shape.id, 0);
+        }
+        for (let i1 = 0; i1 < shapes.length; i1++) {
+            const shape1 = shapes[i1];
+            shape1.patternIds.sort(compare);
+            for (let i2 = 0; i2 < i1; i2++) {
+                const shape2 = shapes[i2];
+                shape2.patternIds.sort(compare);
+                let comparedValue = this.compareFunction(shape1.baseFunction, shape2.baseFunction);
+                if (comparedValue === 0) {
+                    for (let i = 0;; i++) {
+                        if (i === shape2.patternIds.length) {
+                            comparedValue = 1;
+                        } else if (i === shape1.patternIds.length) {
+                            comparedValue = -1;
+                        } else {
+                            const childComparedValue = compare(shape1.patternIds[i], shape2.patternIds[i]);
+                            if (childComparedValue === 0) {
+                                continue;
+                            } else {
+                                comparedValue = childComparedValue;
+                            }
+                        }
+                        break;
+                    }
+                }
+                comparison.get(shape1.id).set(shape2.id, comparedValue);
+                comparison.get(shape2.id).set(shape1.id, -comparedValue);
+            }
+        }
+        shapes.sort((s1, s2) => comparison.get(s1.id).get(s2.id));
+        for (let index = 0; index < shapes.length; index++) {
+            this.orderMap.set(shapes[index].id, index);
+        }
+    }
+
+    private compareFunction(functionId1: number, functionId2: number): number {
+        if (functionId1 < functionId2) {
+            return -1;
+        } else if (functionId1 === functionId2) {
+            return 0;
+        } else {
+            return 1;
+        }
+    }
+
+    private verifyOrderingRelation() {
+        const patternIds = Array.from(this.orderMap.keys());
+        patternIds.sort(this.compare);
+        for (let patternId of patternIds) {
+            if (this.compare(patternId, patternId) !== 0) {
+                console.error("Same patterns are equal according to the ordering relation.")
+            }
+        }
+        for (let i1 = 0; i1 < patternIds.length; i1++) {
+            for (let i2 = 0; i2 < i1; i2++) {
+                if (this.compare(patternIds[i1], patternIds[i2]) !== 1
+                    || this.compare(patternIds[i2], patternIds[i1]) !== -1) {
+                    console.error("Patterns couldn't be linearized as it should be with the equivalence relation.");
+                }
+            }
+        }
+        console.log("Ordering relation verified.");
     }
 
     private computeDescendentShapesMap() {

@@ -31,7 +31,7 @@
  */
 
 .pattern-view-root {
-
+    visibility: hidden;
 }
 
 .general-info-box {
@@ -47,6 +47,9 @@
 }
 
 .all-pattern-shape-container {
+    border-color: lightgrey;
+    border-style: solid;
+    border-width: 0 1px 0 0;
     float: left;
     height: 100vh;
     overflow: scroll;
@@ -59,6 +62,9 @@
 }
 
 .filtered-pattern-tool-bar {
+    border-color: lightgrey;
+    border-style: solid;
+    border-width: 0 0 1px 0;
     display: flex;
     font-size: 0.8em;
     overflow-x: scroll;
@@ -148,4 +154,8 @@
     border-style: solid;
     border-color: grey;
     border-width: 0 0 1px 0;
+}
+
+.scrollable-box {
+    overflow-x: scroll;
 }

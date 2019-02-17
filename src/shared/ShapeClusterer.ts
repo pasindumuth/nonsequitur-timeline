@@ -19,6 +19,9 @@ export default class ShapeClusterer {
         this.computeClusters();
         this.computeGroupedClusters();
         this.computeShapeClusters();
+        if (Constants.VERIFY) {
+            this.printClusters();
+        }
     }
 
     printClusters() {
@@ -56,6 +59,7 @@ export default class ShapeClusterer {
         for (let index = 0; index < this.groupedClusteredShapes.length; index++) {
             for (const cluster of this.groupedClusteredShapes[index].clusters) {
                 const shapeIds: number[] = [...cluster.shapeIds];
+                shapeIds.sort(this.shapeMath.compare);
                 this.shapeClusters.push({
                     id: shapeIds[0],
                     depth: lastIndex - index,

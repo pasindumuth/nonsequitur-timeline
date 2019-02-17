@@ -122,14 +122,14 @@ export default class ResolutionReducer {
             originalDistribution.push((totalTimePerPartition - nonEmptySpanOfPartition) / totalTimePerPartition);
 
             // Distribution where values are square rooted and normalized.
-            let squared: number[] = originalDistribution.map(v => Math.pow(v, 1/4));
-            let normal: number = squared.reduce((a, b) => a + b, 0);
-            let normalizedSquared: number[] = squared.map(v => v / normal);
+            let root: number[] = originalDistribution.map(v => Math.pow(v, 1/4));
+            let normal: number = root.reduce((a, b) => a + b, 0);
+            let normalizedRoot: number[] = root.map(v => v / normal);
 
             let next = numberCycle.next();
             let j = 0;
-            for (; j < normalizedSquared.length - 1 && normalizedSquared[j] <= next; j++) {
-                next -= normalizedSquared[j];
+            for (; j < normalizedRoot.length - 1 && normalizedRoot[j] <= next; j++) {
+                next -= normalizedRoot[j];
             }
             if (j < patterns.length) {
                 // We hit a pattern

@@ -10,6 +10,7 @@ import {MetaData} from "./timesquared/shared/shapes";
 import FunctionData from "./FunctionData";
 import ShapeRenderer from "./ShapeRenderer";
 import ShapeMath from "../shared/ShapeMath";
+import Constants from "../shared/Constants";
 
 let dataProcessorWebWorker = new Worker("./js/backend/DataProcessorWebWorker.js");
 let gRenderer: Renderer = null;
@@ -39,7 +40,6 @@ function render(result: AjaxData) {
     let div = document.createElement("div");
     $(div).addClass("canvas-div");
     $(div).append(timeline.canvas);
-    $(rootDiv).append(div);
 
     timeline.setupHoverBehaviour();
     timeline.render();
@@ -55,11 +55,21 @@ function render(result: AjaxData) {
 
 
     gRenderer = new Renderer($('#mainRenderContainer').get(0), functionData);
-    // shapeRenderer.renderAll();
-    // shapeRenderer.setupDistanceFiltering();
-    // shapeRenderer.setupDistanceLabel();
-    // shapeRenderer.setClusterDisplaying();
-    // shapeClusterer.printClusters();
+    if (Constants.TIMELINE) {
+        $(rootDiv).append(div);
+    } else {
+        const patternView = <HTMLDivElement>document.getElementsByClassName('pattern-view-root')[0];
+        $(patternView).css({
+            'visibility': 'visible'
+        });
+        $(document.body).css({
+            'overflow': 'hidden',
+        });
+        shapeRenderer.renderAll();
+        shapeRenderer.setupDistanceFiltering();
+        shapeRenderer.setupDistanceLabel();
+        shapeRenderer.setClusterDisplaying();
+    }
     console.log("all done");
 }
 
