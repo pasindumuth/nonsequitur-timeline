@@ -3,6 +3,7 @@ import ColorPicker from './ColorPicker';
 import ResolutionReducer from "./ResolutionReducer";
 import Constants from "./Constants";
 import $ from "jquery";
+import ShapeRenderer from "./ShapeRenderer";
 
 export default class Timeline {
 
@@ -14,6 +15,7 @@ export default class Timeline {
 
     colorPicker: ColorPicker;
     program: Program;
+    shapeRenderer: ShapeRenderer;
 
     processor: ResolutionReducer;
     threadHeightMap = new Map<string, number>();
@@ -26,9 +28,10 @@ export default class Timeline {
     // is 2x2 screen pixels. In order to increase the resolution of the canvas, we must fix the CSS width to the screen width,
     // but double the width property of the canvas. We do the same for height. All pixel values here (width and height)
     // will be relative to the increased resolution of the canvas.
-    constructor(program: Program, windowWidth: number) {
+    constructor(program: Program, windowWidth: number, shapeRenderer: ShapeRenderer) {
         this.program = program;
         this.canvasWidth = windowWidth * 2;
+        this.shapeRenderer = shapeRenderer;
         this.timelineWidth = this.canvasWidth - (Constants.TIMELINE_LEFT_PADDING + Constants.TIMELINE_RIGHT_PADDING);
 
         this.canvas = document.createElement("canvas");
@@ -73,6 +76,7 @@ export default class Timeline {
         $(this.infoBox).css({
             "visibility": "hidden",
             "z-index" : 5,
+            "overflow": "scroll",
             "width": Constants.INFO_BOX_WIDTH,
             "height": Constants.INFO_BOX_HEIGHT,
         });
@@ -119,7 +123,7 @@ export default class Timeline {
                 let pattern = this.processor.patternPerOffsetPerDepthPerThread.get(threadId)[depth][timelineOffsetX];
                 if (pattern) {
                     // An interval is defined for this point on the canvas
-                    $(this.text).text(pattern.id.toString() + "\n" + JSON.stringify(pattern.representation));
+                    this.shapeRenderer.showRenderedShapesInDiv(pattern.representation.shapeIds, this.infoBox);
                     $(this.infoBox).css({
                         "visibility": "visible",
                         "border-width": 5,

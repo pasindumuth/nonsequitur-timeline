@@ -1,6 +1,6 @@
 import $ from 'jquery';
 import Timeline from './Timeline';
-import {AjaxData} from '../shared/shapes';
+import {AjaxData, ShapeCluster} from '../shared/shapes';
 
 import {Renderer} from './timesquared/frontend/Renderer';
 import Database from './timesquared/frontend/Database';
@@ -10,8 +10,6 @@ import {MetaData} from "./timesquared/shared/shapes";
 import FunctionData from "./FunctionData";
 import ShapeRenderer from "./ShapeRenderer";
 import ShapeMath from "../shared/ShapeMath";
-import ShapeClusterer from "../shared/ShapeClusterer";
-
 
 let dataProcessorWebWorker = new Worker("./js/backend/DataProcessorWebWorker.js");
 let gRenderer: Renderer = null;
@@ -24,15 +22,24 @@ let gMetadata: MetaData = null,
 
 function render(result: AjaxData) {
     console.log("start rendering");
+
+    functionData = new FunctionData(result.functions);
+    const shapeMath = new ShapeMath(result.strippedPatternShapes);
+    const shapeClusters = new Array<ShapeCluster>();
+    result.program.threads.forEach(
+        thread => thread.patterns.forEach(
+            pattern => shapeClusters.push(pattern.representation)));
+    const shapeRenderer = new ShapeRenderer(result.strippedPatternShapes, shapeMath, functionData, shapeClusters);
+
     let program = result.program;
     let width = $(window).width();
-    let timeline = new Timeline(program, width);
+    let timeline = new Timeline(program, width, shapeRenderer);
 
     let rootDiv = $("#mainPatternRenderContainer");
     let div = document.createElement("div");
     $(div).addClass("canvas-div");
     $(div).append(timeline.canvas);
-    // $(rootDiv).append(div);
+    $(rootDiv).append(div);
 
     timeline.setupHoverBehaviour();
     timeline.render();
@@ -46,16 +53,13 @@ function render(result: AjaxData) {
         executeQuery(query);
     });
 
-    functionData = new FunctionData(result.functions);
-    // gRenderer = new Renderer($('#mainRenderContainer').get(0), functionData);
-    const shapeMath = new ShapeMath(result.strippedPatternShapes);
-    const shapeClusterer = new ShapeClusterer(result.strippedPatternShapes, shapeMath);
-    const shapeRenderer = new ShapeRenderer(result.strippedPatternShapes, shapeMath, functionData, shapeClusterer.clusteredShapes);
-    shapeRenderer.renderAll();
-    shapeRenderer.setupDistanceFiltering();
-    shapeRenderer.setupDistanceLabel();
-    shapeRenderer.setClusterDisplaying();
-    shapeClusterer.printClusters();
+
+    gRenderer = new Renderer($('#mainRenderContainer').get(0), functionData);
+    // shapeRenderer.renderAll();
+    // shapeRenderer.setupDistanceFiltering();
+    // shapeRenderer.setupDistanceLabel();
+    // shapeRenderer.setClusterDisplaying();
+    // shapeClusterer.printClusters();
     console.log("all done");
 }
 

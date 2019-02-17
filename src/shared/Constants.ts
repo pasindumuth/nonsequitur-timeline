@@ -12,4 +12,7 @@ export default class Constants {
 
     // Server
     static FUNCTIONS_FILE = "../data/functions.txt";
+
+    // Mode
+    static VERIFY = false;
 }

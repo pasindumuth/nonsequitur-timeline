@@ -1,17 +1,28 @@
 {
   "programConfig" : {
-    "RESOLUTION": 1000000,
-    "RELATIVE_TIME_NUM_DIGITS": 15,
-    "SAMPLING_RATIO": 1,
-    "NUM_SAMPLES": 1,
     "METADATA_PATH": "../data/metadata"
   },
     
   "threads": [
     {
       "threadID": "1",
-      "numTopPatterns" : 50,
-      "filePath": "../data/thread.1.patterns.0distance"
+      "filePath": "../data/thread.1.patterns"
+    },
+    {
+      "threadID": "7",
+      "filePath": "../data/thread.7.patterns"
+    },
+    {
+      "threadID": "9",
+      "filePath": "../data/thread.9.patterns"
+    },
+    {
+      "threadID": "10",
+      "filePath": "../data/thread.10.patterns"
+    },
+    {
+      "threadID": "11",
+      "filePath": "../data/thread.11.patterns"
     }
   ]
 }

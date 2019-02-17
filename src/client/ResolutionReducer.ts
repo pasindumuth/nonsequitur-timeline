@@ -1,4 +1,4 @@
-import {Pattern, PatternShape, Program} from "../shared/shapes";
+import {Pattern, Program, ShapeCluster} from "../shared/shapes";
 
 export default class ResolutionReducer {
     program: Program;
@@ -180,6 +180,6 @@ class Cycle0To1 {
 
 export class LowResolutionPattern {
     id: number;
-    representation: PatternShape;
+    representation: ShapeCluster;
     pixelOffsets: number[];
 }

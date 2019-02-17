@@ -1,23 +1,22 @@
 import Constants from './Constants';
-import {StrippedPatternShape} from '../shared/shapes';
+import {ShapeCluster, StrippedPatternShape} from '../shared/shapes';
 import {e, isNullPattern} from '../shared/Utils';
 import FunctionData from './FunctionData';
 import $ from 'jquery';
 import ShapeMath from '../shared/ShapeMath';
-import {Cluster} from '../shared/ShapeClusterer';
 
 export default class ShapeRenderer {
     shapes: StrippedPatternShape[];
     shapeMath: ShapeMath;
     functionData: FunctionData;
-    clusters: Cluster[];
+    clusters: ShapeCluster[];
 
     infoBox: HTMLDivElement;
 
     renderedShapesAll = new Map<number, Node>();
     renderedShapesFilter = new Map<number, Node>();
 
-    constructor(shapes: StrippedPatternShape[], shapeMath: ShapeMath, functionData: FunctionData, clusters: Cluster[]) {
+    constructor(shapes: StrippedPatternShape[], shapeMath: ShapeMath, functionData: FunctionData, clusters: ShapeCluster[]) {
         this.shapes = [...shapes];
         this.shapeMath = shapeMath;
         this.functionData = functionData;
@@ -107,12 +106,16 @@ export default class ShapeRenderer {
 
     showRenderedShapes(patternIds: Array<number>): HTMLDivElement {
         const filteredContainer = <HTMLDivElement>document.getElementsByClassName('filtered-pattern-search-results-container')[0];
+        return this.showRenderedShapesInDiv(patternIds, filteredContainer);
+    }
+
+    showRenderedShapesInDiv(patternIds: Array<number>, outerContainer: HTMLDivElement): HTMLDivElement {
         const container = document.createElement('div');
         for (const patternId of patternIds) {
             container.appendChild(this.renderedShapesFilter.get(patternId));
         }
-        $(filteredContainer).empty();
-        filteredContainer.appendChild(container);
+        $(outerContainer).empty();
+        outerContainer.appendChild(container);
         return container;
     }
 

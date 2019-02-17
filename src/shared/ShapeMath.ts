@@ -23,7 +23,9 @@ export default class ShapeMath {
         this.computeAllLengths();
         this.computeDistance();
         this.computeDescendentShapesMap();
-        // this.verify(); // Run verification when we make substantial changes
+        if (Constants.VERIFY) {
+            this.verify();
+        }
     }
 
     distance(patternId1: number, patternId2: number): number {

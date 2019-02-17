@@ -17,7 +17,39 @@ export class Thread {
 
 export class Pattern {
     id: number;
-    representation: PatternShape;
+    representation: ShapeCluster;
+    intervals: number[][];
+}
+
+export class ShapeCluster {
+    id: number;
+    depth: number;
+    baseFunction: number;
+    shapeIds: number[];
+}
+
+/**
+ * This class fixes some of the problems with the patterns passed in.
+ * We reintroduce singleFunctionPatterns, and we include the null pattern's
+ * Occurance in the constituent patterns.
+ */
+export class StrippedPatternShape {
+    id: number;
+    depth: number;
+    baseFunction: number;
+    patternIds: number[];
+}
+
+// STORED DATA
+
+export class StoredThread {
+    id: string;
+    patterns: StoredPattern[];
+}
+
+export class StoredPattern {
+    id: number;
+    representation: StoredPatternShape;
     intervals: number[][];
 }
 
@@ -26,7 +58,7 @@ export class Pattern {
  * patterns, and ids of single function patterns is just the base
  * function id.
  */
-export class PatternShape {
+export class StoredPatternShape {
     depth: number;
     baseFunctions: {
         baseFunction: number;
@@ -42,15 +74,4 @@ export class Metadata {
     absoluteStartTime: string;
     absoluteEndTime: string;
     duration: number;
-}
-/**
- * This class fixes some of the problems with the patterns passed in.
- * We reintroduce singleFunctionPatterns, and we include the null pattern's
- * Occurance in the constituent patterns.
- */
-export class StrippedPatternShape {
-    readonly id: number;
-    readonly depth: number;
-    readonly baseFunction: number;
-    readonly patternIds: number[];
 }

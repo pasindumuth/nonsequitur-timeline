@@ -2,8 +2,20 @@ import { cloneDeep } from 'lodash';
 import fs from 'fs';
 import path from 'path';
 import {Config} from './config'
-import {Program, Thread, Pattern, AjaxData, Metadata, StrippedPatternShape} from '../shared/shapes';
+import {
+    Program,
+    Thread,
+    Pattern,
+    AjaxData,
+    Metadata,
+    StrippedPatternShape,
+    StoredPattern,
+    StoredThread,
+    ShapeCluster
+} from '../shared/shapes';
 import Constants from '../shared/Constants'
+import ShapeMath from "../shared/ShapeMath";
+import ShapeClusterer from "../shared/ShapeClusterer";
 
 const config: Config = require('./config.json');
 
@@ -16,7 +28,7 @@ class Filter {
     }
 
     filterThreads() {
-        this.filterThreadsByFrequency();
+        // this.filterThreadsByFrequency();
         this.filterToTop4PatternsPerDepthPerThreadBySpan();
     }
 
@@ -149,7 +161,7 @@ class StrippedPatternProcessor {
         }
     }
 
-    computeOrderingRelation(strippedShapes: StrippedPatternShape[]): void {
+    private computeOrderingRelation(strippedShapes: StrippedPatternShape[]): void {
         const shapes = cloneDeep(strippedShapes);
         shapes.sort((s1, s2) => s1.depth - s2.depth);
         for (const shape of shapes) {
@@ -184,7 +196,9 @@ class StrippedPatternProcessor {
                 this.comparison.get(shape2.id).set(shape1.id, -comparedValue);
             }
         }
-        this.verifyOrderingRelation()
+        if (Constants.VERIFY) {
+            this.verifyOrderingRelation()
+        }
     }
 
     compare = (patternId1: number, patternId2: number): number => {
@@ -201,7 +215,7 @@ class StrippedPatternProcessor {
         }
     }
 
-    verifyOrderingRelation() {
+    private verifyOrderingRelation() {
         const patternIds = Array.from(this.comparison.keys());
         patternIds.sort(this.compare);
         for (let patternId of patternIds) {
@@ -217,21 +231,113 @@ class StrippedPatternProcessor {
                 }
             }
         }
-        console.log("Verified Ordering Relation.");
+        console.log("Ordering relation verified.");
+    }
+}
+
+class PatternConverter {
+    storedThreads: StoredThread[];
+    strippedShapes: StrippedPatternShape[];
+
+    indexedShapeClusters = new Map<number, ShapeCluster>();
+
+    constructor(storedThreads: StoredThread[], strippedShapes: StrippedPatternShape[]) {
+        this.storedThreads = storedThreads;
+        this.strippedShapes = strippedShapes;
+
+        const shapeMath = new ShapeMath(strippedShapes);
+        const shapeClusterer = new ShapeClusterer(strippedShapes, shapeMath);
+        for (const shapeCluster of shapeClusterer.shapeClusters) {
+            for (const shapeInClusterId of shapeCluster.shapeIds) {
+                this.indexedShapeClusters.set(shapeInClusterId, shapeCluster);
+            }
+        }
+    }
+
+    convertPatterns(): Thread[] {
+        const threads = new Array<Thread>();
+        for (const storedThread of this.storedThreads) {
+            const thread = this.convertPatternsForThread(storedThread);
+            threads.push(thread);
+        }
+        if (Constants.VERIFY) {
+            this.verifyNonOverlapping(threads);
+        }
+        return threads;
+    }
+
+    /**
+     * A ShapeCluster is essentially a set of shapes with a designated representative shape,
+     * making up the ShapeCluster's ID. For a give thread, a Pattern is an instance of a
+     * shape. The Id of the Pattern is the Id of the ShapeCluster. An instance of a different
+     * shape that is still in that shape clusters will be considered an instance of the Pattern.
+     */
+    private convertPatternsForThread(storedThread: StoredThread): Thread {
+        const indexedPatterns = new Map<number, Pattern>();
+        for (const storedPattern of storedThread.patterns) {
+            const shapeCluster = this.indexedShapeClusters.get(storedPattern.id);
+            if (!indexedPatterns.has(shapeCluster.id)) {
+                indexedPatterns.set(shapeCluster.id, {
+                    id: shapeCluster.id,
+                    representation: shapeCluster,
+                    intervals: [],
+                })
+            }
+            const pattern = indexedPatterns.get(shapeCluster.id);
+            for (const newInterval of storedPattern.intervals) {
+                pattern.intervals.push(newInterval);
+            }
+        }
+        const patterns = new Array<Pattern>();
+        for (const pattern of indexedPatterns.values()) {
+            patterns.push(pattern);
+        }
+        return {
+            id: storedThread.id,
+            patterns: patterns,
+        }
+    }
+
+    private verifyNonOverlapping(threads: Thread[]) {
+        for (const thread of threads) {
+            const patternsByDepth = new Map<number, Pattern[]>();
+            for (const pattern of thread.patterns) {
+                const depth = pattern.representation.depth;
+                if (!patternsByDepth.has(depth)) {
+                    patternsByDepth.set(depth, []);
+                }
+                patternsByDepth.get(depth).push(pattern);
+            }
+            for (const patterns of patternsByDepth.values()) {
+                const allIntervals = new Array<Array<number>>();
+                for (const pattern of patterns) {
+                    for (const interval of pattern.intervals) {
+                        allIntervals.push(interval);
+                    }
+                }
+                allIntervals.sort((i1, i2) => i1[0] - i2[0]);
+                for (let i = 1; i < allIntervals.length; i++) {
+                    if (allIntervals[i][0] < allIntervals[i - 1][1]) {
+                        console.error('Patterns with same depth have overlapping intervals');
+                    }
+                }
+            }
+        }
+        console.log('Pattern overlapping properties verified.')
     }
 }
 
 function main() : AjaxData {
-    const threads = new Array<Thread>();
+    const storedThreads = new Array<StoredThread>();
     const strippedShapeMap = new Map<number, StrippedPatternShape>();
     for (let threadConfig of config.threads) {
         const threadFile = fs.readFileSync(path.join(__dirname, threadConfig.filePath), "utf-8");
-        const patterns : Pattern[] = JSON.parse(threadFile);
-        const thread: Thread = {
+        const patterns : StoredPattern[] = JSON.parse(threadFile);
+        const thread: StoredThread = {
             id: threadConfig.threadID,
             patterns: patterns
         };
-        threads.push(thread);
+        storedThreads.push(thread);
 
         for (const pattern of patterns) {
             if (!strippedShapeMap.has(pattern.id)) {
@@ -247,6 +353,15 @@ function main() : AjaxData {
             }
         }
     }
+
+    const functionsFile = fs.readFileSync(path.join(__dirname, Constants.FUNCTIONS_FILE), "utf-8");
+    const functions : string[] = JSON.parse(functionsFile);
+    const strippedPatternProcessor = new StrippedPatternProcessor();
+    const strippedShapes = strippedPatternProcessor.completeStrippedShapes(functions.length, strippedShapeMap);
+    strippedPatternProcessor.sortStrippedShapes(strippedShapes);
+
+    const patternConverter = new PatternConverter(storedThreads, strippedShapes);
+    const threads = patternConverter.convertPatterns();
 
     let metadataFile = fs.readFileSync(path.join(__dirname, config.programConfig.METADATA_PATH), "utf-8");
     let metadata : Metadata = JSON.parse(metadataFile);
@@ -267,11 +382,6 @@ function main() : AjaxData {
         }
     }
 
-    const functionsFile = fs.readFileSync(path.join(__dirname, Constants.FUNCTIONS_FILE), "utf-8");
-    const functions : string[] = JSON.parse(functionsFile);
-    const strippedPatternProcessor = new StrippedPatternProcessor();
-    const strippedShapes = strippedPatternProcessor.completeStrippedShapes(functions.length, strippedShapeMap);
-    strippedPatternProcessor.sortStrippedShapes(strippedShapes);
     return {
         program: program,
         functions: functions,

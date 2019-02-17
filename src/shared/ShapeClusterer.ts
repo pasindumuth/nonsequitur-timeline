@@ -1,5 +1,5 @@
 import Constants from "./Constants";
-import {StrippedPatternShape} from "./shapes";
+import {ShapeCluster, StrippedPatternShape} from "./shapes";
 import ShapeMath from "./ShapeMath";
 import {isNullPattern} from "./Utils";
 
@@ -11,12 +11,14 @@ export default class ShapeClusterer {
     // a fixed distance from each other, and are not descendents of one another.
     clusteredShapes = new Array<Cluster>();
     groupedClusteredShapes = new Array<GroupedCluster>();
+    shapeClusters = new Array<ShapeCluster>();
 
     constructor(shapes: StrippedPatternShape[], shapeMath: ShapeMath) {
         this.shapes = [...shapes];
         this.shapeMath = shapeMath;
         this.computeClusters();
         this.computeGroupedClusters();
+        this.computeShapeClusters();
     }
 
     printClusters() {
@@ -46,6 +48,21 @@ export default class ShapeClusterer {
             console.log('group index: ' + index + ', clusters in group: ' + groupedClusteredShape.clusters.length);
             console.log(allShapeIds);
             console.log('==============================')
+        }
+    }
+
+    private computeShapeClusters() {
+        const lastIndex = this.groupedClusteredShapes.length - 1;
+        for (let index = 0; index < this.groupedClusteredShapes.length; index++) {
+            for (const cluster of this.groupedClusteredShapes[index].clusters) {
+                const shapeIds: number[] = [...cluster.shapeIds];
+                this.shapeClusters.push({
+                    id: shapeIds[0],
+                    depth: lastIndex - index,
+                    baseFunction: cluster.baseFunction,
+                    shapeIds: shapeIds,
+                });
+            }
         }
     }
 
