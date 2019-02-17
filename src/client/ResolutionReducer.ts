@@ -1,7 +1,6 @@
 import {Pattern, PatternShape, Program} from "../shared/shapes";
 
 export default class ResolutionReducer {
-
     program: Program;
     width: number;
 
@@ -110,7 +109,7 @@ export default class ResolutionReducer {
             offsets.push([]);
         }
 
-        // To chose a pattern, we create a distribution (including lack of pattern), scale by some
+        // To choose a pattern, we create a distribution (including lack of pattern), scale by some
         // upscale function, and randomly sample.
         let numberCycle: Cycle0To1 = new Cycle0To1();
         for (let i = 0; i < this.width; i++) {

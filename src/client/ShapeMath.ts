@@ -1,4 +1,4 @@
-import {default as SharedConstants} from "../shared/Constants";
+import Constants from "../shared/Constants";
 import assert from "assert";
 import {StrippedPatternShape} from "../shared/shapes";
 import {isNullPattern} from "../shared/Utils";
@@ -7,7 +7,7 @@ export default class ShapeMath {
     shapes: StrippedPatternShape[];
 
     distanceMap = new Map<number, Map<number, number>>();
-    descendentShapesMap = new Map<number, Array<number>>();
+    descendentShapesMap = new Map<number, Set<number>>();
     indexedShapes = new Map<number, StrippedPatternShape>();
     lengthsById = new Map<number, number>();
     orderMap = new Map<number, number>();
@@ -45,12 +45,14 @@ export default class ShapeMath {
     private computeDescendentShapesMap() {
         const shapes = [...this.shapes];
         shapes.sort((s1, s2) => s1.depth - s2.depth);
-        this.descendentShapesMap.set(SharedConstants.NULL_PATTERN_ID, []);
+        this.descendentShapesMap.set(Constants.NULL_PATTERN_ID, new Set());
         for (const shape of shapes) {
-            const descendentShapes = new Array<number>();
+            const descendentShapes = new Set<number>();
             for (const patternId of shape.patternIds) {
-                descendentShapes.push(patternId);
-                descendentShapes.push(...this.descendentShapesMap.get(patternId));
+                descendentShapes.add(patternId);
+                for (const descendentPatternId of this.descendentShapesMap.get(patternId)) {
+                    descendentShapes.add(descendentPatternId);
+                }
             }
             this.descendentShapesMap.set(shape.id, descendentShapes);
         }
@@ -92,11 +94,11 @@ export default class ShapeMath {
 
     private getFunctionDistance(functionId1: number, functionId2: number): number {
         if (functionId1 !== functionId2) {
-            if (functionId1 === SharedConstants.NULL_FUNCTION_ID
-                || functionId2 === SharedConstants.NULL_FUNCTION_ID) {
-                return SharedConstants.NULL_FUNCTION_DISTANCE
+            if (functionId1 === Constants.NULL_FUNCTION_ID
+             || functionId2 === Constants.NULL_FUNCTION_ID) {
+                return Constants.NULL_FUNCTION_DISTANCE
             } else {
-                return SharedConstants.FUNCTION_DISTANCE;
+                return Constants.FUNCTION_DISTANCE;
             }
         } else {
             return 0;

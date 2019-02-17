@@ -8,6 +8,8 @@ export default class Constants {
     static NULL_FUNCTION_DISTANCE = 0.5;
     static NULL_FUNCTION_ID = -1;
 
+    static CLUSTER_DISTANCE = 1.5;
+
     // Server
     static FUNCTIONS_FILE = "../data/functions.txt";
 }

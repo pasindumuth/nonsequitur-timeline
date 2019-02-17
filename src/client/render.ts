@@ -10,6 +10,7 @@ import {MetaData} from "./timesquared/shared/shapes";
 import FunctionData from "./FunctionData";
 import ShapeRenderer from "./ShapeRenderer";
 import ShapeMath from "./ShapeMath";
+import ShapeClusterer from "./ShapeClusterer";
 
 
 let dataProcessorWebWorker = new Worker("./js/backend/DataProcessorWebWorker.js");
@@ -48,10 +49,13 @@ function render(result: AjaxData) {
     functionData = new FunctionData(result.functions);
     // gRenderer = new Renderer($('#mainRenderContainer').get(0), functionData);
     const shapeMath = new ShapeMath(result.strippedPatternShapes);
-    const shapeRenderer = new ShapeRenderer(result.strippedPatternShapes, functionData, shapeMath);
+    const shapeClusterer = new ShapeClusterer(result.strippedPatternShapes, shapeMath);
+    const shapeRenderer = new ShapeRenderer(result.strippedPatternShapes, shapeMath, functionData, shapeClusterer.clusteredShapes);
     shapeRenderer.renderAll();
-    shapeRenderer.setupClickHandlers();
+    shapeRenderer.setupDistanceFiltering();
     shapeRenderer.setupDistanceLabel();
+    shapeRenderer.setClusterDisplaying();
+    shapeClusterer.printClusters();
     console.log("all done");
 }
 
