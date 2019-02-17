@@ -87,7 +87,6 @@ export default class ShapeRenderer {
                 for (let i = 0; i < this.clusters.length; i++) {
                     const cluster = this.clusters[i];
                     const patternIds = [...cluster.shapeIds];
-                    console.log(patternIds);
                     const container = document.createElement('div');
                     for (const patternId of patternIds) {
                         const rendererShape = this.renderedShapesFilter.get(patternId);
