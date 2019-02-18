@@ -19,7 +19,7 @@ export default class ShapeClusterer {
         this.computeClusters();
         this.computeGroupedClusters();
         this.computeShapeClusters();
-        if (Constants.VERIFY) {
+        if (Constants.LOG) {
             this.printClusters();
         }
     }

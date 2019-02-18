@@ -53,9 +53,8 @@ function render(result: AjaxData) {
         executeQuery(query);
     });
 
-
-    gRenderer = new Renderer($('#mainRenderContainer').get(0), functionData);
     if (Constants.TIMELINE) {
+        gRenderer = new Renderer($('#mainRenderContainer').get(0), functionData);
         $(rootDiv).append(div);
     } else {
         const patternView = <HTMLDivElement>document.getElementsByClassName('pattern-view-root')[0];

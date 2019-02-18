@@ -89,7 +89,13 @@ export default class ResolutionReducer {
                 // move the current interval until the end is passed the current partition, adding the lengths
                 // of all intervals (clamped by the partition) to the partitions span.
                 for (; currentIntervalIndex < intervals.length &&
-                       intervals[currentIntervalIndex][1] <= partitionEndTime; currentIntervalIndex++) {
+                       intervals[currentIntervalIndex][1] < partitionEndTime; currentIntervalIndex++) {
+                    let interval = intervals[currentIntervalIndex];
+                    let clampedStartTime = Math.min(Math.max(partitionStartTime, interval[0]), partitionEndTime);
+                    let clampedEndTime = Math.max(Math.min(partitionEndTime, interval[1]), partitionStartTime);
+                    span += clampedEndTime - clampedStartTime;
+                }
+                if (currentIntervalIndex < intervals.length) {
                     let interval = intervals[currentIntervalIndex];
                     let clampedStartTime = Math.min(Math.max(partitionStartTime, interval[0]), partitionEndTime);
                     let clampedEndTime = Math.max(Math.min(partitionEndTime, interval[1]), partitionStartTime);
