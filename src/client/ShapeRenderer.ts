@@ -196,6 +196,7 @@ export default class ShapeRenderer {
                     <div class='general-info-box-contents'>
                         <div>${shape.id}</div>
                         <div>${shape.baseFunction}</div>
+                        <div>${this.functionData.functions[shape.baseFunction]}</div>
                     </div>
                     `)
                     .css({

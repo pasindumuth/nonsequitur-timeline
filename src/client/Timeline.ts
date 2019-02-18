@@ -64,25 +64,7 @@ export default class Timeline {
         this.canvasHeight = canvasCssHeight * 2;
         this.canvas.height = this.canvasHeight;
 
-        // Info box. Create a hidden div. When it is needed, make it visible, translate it, style it, and set it's contents as
-        // necessary.
-        this.text = document.createElement("div");
-        this.text.className = "infoBox-text";
-
-        this.infoBox = document.createElement("div");
-        this.infoBox.className = "infoBox";
-        this.infoBox.appendChild(this.text);
-
-        $(this.infoBox).css({
-            "visibility": "hidden",
-            "z-index" : 5,
-            "overflow": "scroll",
-            "width": Constants.INFO_BOX_WIDTH,
-            "height": Constants.INFO_BOX_HEIGHT,
-        });
-
-        let rootDiv = $("#mainPatternRenderContainer");
-        $(rootDiv).append(this.infoBox);
+        this.infoBox = <HTMLDivElement>document.getElementsByClassName('timeline-info-box')[0];
     }
 
     render() {

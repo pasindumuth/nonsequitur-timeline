@@ -9,6 +9,7 @@ export default class FunctionData {
     colorToFunctionId = new Map<string, number>();
 
     constructor(functions: string[]) {
+        this.functions = functions;
         for (let index = 0; index < functions.length; index++) {
             const func = functions[index];
             const colOffset = Math.floor(index / 20);
@@ -23,7 +24,5 @@ export default class FunctionData {
             this.functionIdToColor.set(index, eventColor);
             this.colorToFunctionId.set(eventColor, index);
         }
-
-        this.functions = functions;
     }
 }
