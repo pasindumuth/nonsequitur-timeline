@@ -6,12 +6,10 @@ export default class Constants {
     // Timeline
     static TIMELINE_RIBBON_HEIGHT = 8;
     static TIMELINE_LEFT_PADDING = 20;
-    static TIMELINE_TOP_PADDING = 20;
+    static TIMELINE_VERTICAL_PADDING = 20;
     static TIMELINE_RIGHT_PADDING = 20;
 
-    // Info Box
-    static INFO_BOX_WIDTH = "500px";
-    static INFO_BOX_HEIGHT = "300px";
+    static THREAD_INFO_BOX_WIDTH = 100;
 
     static ALL_COLORS = ["#969664","#fa0064","#9632c8","#3264fa","#966464","#32c864","#fa6496",
         "#6432c8","#c864c8","#96c896","#c800c8","#fa3232","#64fa64","#6432fa","#00fafa","#00c8fa",

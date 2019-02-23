@@ -37,13 +37,8 @@ function render(result: AjaxData) {
     let width = $(window).width();
     let timeline = new Timeline(program, width, shapeRenderer);
 
-    let rootDiv = $("#mainPatternRenderContainer");
-    let div = document.createElement("div");
-    $(div).addClass("canvas-div");
-    $(div).append(timeline.canvas);
-
-    timeline.setupHoverBehaviour();
     timeline.render();
+    timeline.setupHoverBehaviour();
     timeline.setupTimeSquaredSampling((interval: number[], threadId: string) => {
         let absoluteTime = program.absoluteStartTime;
         let absoluteTimePrefix = absoluteTime.substring(0, absoluteTime.length - 15);
@@ -54,9 +49,10 @@ function render(result: AjaxData) {
         executeQuery(query);
     });
 
+    let rootDiv = $("#mainPatternRenderContainer");
     if (Constants.TIMELINE) {
         gRenderer = new Renderer($('#mainRenderContainer').get(0), functionData);
-        $(rootDiv).append(div);
+        $(rootDiv).append(timeline.mainContainer);
     } else {
         const patternView = <HTMLDivElement>document.getElementsByClassName('pattern-view-root')[0];
         $(patternView).css({
