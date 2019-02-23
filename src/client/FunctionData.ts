@@ -3,6 +3,7 @@ import {colorHexstringToRgb, rgbToColorHexstring} from "../shared/Utils";
 
 export default class FunctionData {
     functions: Array<string>;
+    functionToId = new Map<string, number>();
     eventColors: { [p: string]: string; } = {};
     colToEvent: { [p: string]: string; } = {};
     functionIdToColor = new Map<number, string>();
@@ -19,6 +20,7 @@ export default class FunctionData {
                 rgbEventColor[1] - colOffset,
                 rgbEventColor[2] - colOffset
             );
+            this.functionToId.set(func, index);
             this.eventColors[func] = eventColor;
             this.colToEvent[eventColor] = func;
             this.functionIdToColor.set(index, eventColor);

@@ -11,6 +11,7 @@ import FunctionData from "./FunctionData";
 import ShapeRenderer from "./ShapeRenderer";
 import ShapeMath from "../shared/ShapeMath";
 import Constants from "../shared/Constants";
+import TraceRenderer from "./TraceRenderer";
 
 let dataProcessorWebWorker = new Worker("./js/backend/DataProcessorWebWorker.js");
 let gRenderer: Renderer = null;
@@ -80,13 +81,19 @@ function executeQuery(query: string) {
     const newTimesquared = document.createElement("div");
     $('#mainRenderContainer').prepend(newTimesquared)
     gRenderer = new Renderer(newTimesquared, functionData);
-    
+
     Database.rawQuery(decodeURI(query))
-    .then(function (rawdata) {
-        dataProcessorWebWorker.postMessage(["rawdata", rawdata]);
+    .then((rawdata: string) => {
+        if (Constants.TIMESQUARED) {
+            dataProcessorWebWorker.postMessage(["rawdata", rawdata]);
+        } else {
+            const traceRenderer = new TraceRenderer(rawdata.split('\n'), functionData);
+            traceRenderer.render();
+            $('#mainRenderContainer').prepend(traceRenderer.canvas);
+        }
     })
-    .catch(function (err) {
-        $("#errorMessage").html("Error: ".bold() + err).show();
+    .catch(err => {
+        console.log(err);
     });
 }
 

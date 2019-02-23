@@ -17,4 +17,5 @@ export default class Constants {
     static VERIFY = false;
     static LOG = false;
     static TIMELINE = true;
+    static TIMESQUARED = false;
 }
